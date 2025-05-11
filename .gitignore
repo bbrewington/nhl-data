@@ -1,2 +1,5 @@
-.venv
-local_sandbox/
+.venv/
+get_data/data/
+.env
+.ruff_cache/
+*.duckdb
