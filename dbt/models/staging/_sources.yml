@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: s3__bbrewington_nhl_data__moneypuck
+    meta:
+      external_location: "s3://bbrewington-nhl-data/moneypuck/{name}.csv"
+    tables:
+      - name: game_level/all_teams
+      - name: reference/allPlayersLookup

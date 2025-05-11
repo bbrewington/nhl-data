@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: int__teams
+    columns:
+      - name: team_abbr
+        data_tests: [unique, not_null]
