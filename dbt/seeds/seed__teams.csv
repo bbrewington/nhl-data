@@ -1,0 +1,39 @@
+team_abbr_raw,min_season,max_season,team_name,team_abbr
+ANA,2008,,Anaheim Mighty Ducks,ANA
+ARI,2008,2023,Arizona Coyotes,ARI
+ATL,2008,2010,Atlanta Thrashers,ATL
+BOS,2008,,Boston Bruins,BOS
+BUF,2008,,Buffalo Sabres,BUF
+CAR,2008,,Carolina Hurricanes,CAR
+CBJ,2008,,Columbus Blue Jackets,CBJ
+CGY,2008,,Calgary Flames,CGY
+CHI,2008,,Chicago Blackhawks,CHI
+COL,2008,,Colorado Avalanche,COL
+DAL,2008,,Dallas Stars,DAL
+DET,2008,,Detroit Red Wings,DET
+EDM,2008,,Edmonton Oilers,EDM
+FLA,2008,,Florida Panthers,FLA
+L.A,2008,2020,Los Angeles Kings,LAK
+LAK,2021,,Los Angeles Kings,LAK
+MIN,2008,,Minnesota Wild,MIN
+MTL,2008,,Montreal Canadiens,MTL
+N.J,2008,2020,New Jersey Devils,NJD
+NJD,2021,,New Jersey Devils,NJD
+NSH,2008,,Nashville Predators,NSH
+NYI,2008,,New York Islanders,NYI
+NYR,2008,,New York Rangers,NYR
+OTT,2008,,Ottawa Senators,OTT
+PHI,2008,,Philadelphia Flyers,PHI
+PIT,2008,,Pittsburgh Penguins,PIT
+S.J,2008,2020,San Jose Sharks,SJS
+SEA,2021,,Seattle Kraken,SEA
+SJS,2021,,San Jose Sharks,SJS
+STL,2008,,St. Louis Blues,STL
+T.B,2008,2020,Tampa Bay Lightning,TBL
+TBL,2021,,Tampa Bay Lightning,TBL
+TOR,2008,,Toronto Maple Leafs,TOR
+UTA,2024,,Utah Mammoth,UTA
+VAN,2008,,Vancouver Canucks,VAN
+VGK,2017,,Vegas Golden Knights,VGK
+WPG,2011,,Winnipeg Jets,WPG
+WSH,2008,,Washington Capitals,WSH

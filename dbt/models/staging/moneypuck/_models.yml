@@ -1,10 +1,11 @@
 version: 2
 
 models:
-  - name: stg__mp__team_game_situation
+  - name: stg_moneypuck__team_game_situation
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - team_abbr
+            - team_abbr_raw
             - game_id
             - situation
+  - name: stg_moneypuck__players_hist
