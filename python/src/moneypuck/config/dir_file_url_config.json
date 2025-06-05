@@ -1,0 +1,32 @@
+[
+    {
+        "url": "https://moneypuck.com/moneypuck/playerData/careers/gameByGame/all_teams.csv",
+        "dest_subdir": "game_level", 
+        "dest_filename": "all_teams.csv"
+    },
+    {
+        "url": "https://peter-tanner.com/moneypuck/downloads/MoneyPuck_Shot_Data_Dictionary.csv",
+        "dest_subdir": "reference",
+        "dest_filename": "MoneyPuck_Shot_Data_Dictionary.csv"
+    },
+    {
+        "url": "https://peter-tanner.com/moneypuck/downloads/MoneyPuckDataDictionaryForPlayers.csv",
+        "dest_subdir": "reference",
+        "dest_filename": "MoneyPuckDataDictionaryForPlayers.csv"
+    },
+    {
+        "url": "https://moneypuck.com/moneypuck/playerData/playerBios/allPlayersLookup.csv",
+        "dest_subdir": "reference",
+        "dest_filename": "allPlayersLookup.csv"
+    },
+    {
+        "url": "https://peter-tanner.com/moneypuck/downloads/shots_2007-2023.zip",
+        "dest_subdir": "shots",
+        "dest_filename": "shots_2007-2023.zip"
+    },
+    {
+        "url": "https://peter-tanner.com/moneypuck/downloads/shots_2024.zip",
+        "dest_subdir": "shots",
+        "dest_filename": "shots_2024.zip"
+    }
+]

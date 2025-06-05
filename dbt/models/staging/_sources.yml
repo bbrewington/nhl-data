@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: s3__bbrewington_nhl_data__moneypuck
+    meta:
+      external_location: "s3://bbrewington-nhl-data/moneypuck/{name}.parquet"
+    tables:
+      - name: game_level/all_teams
+      - name: season_level/Goalies_*_regular
+      - name: season_level/Goalies_*_playoffs
+      - name: season_level/Lines_*_regular
+      - name: season_level/Lines_*_playoffs
+      - name: season_level/Skaters_*_regular
+      - name: season_level/Skaters_*_playoffs
+      - name: season_level/Teams_*_regular
+      - name: season_level/Teams_*_playoffs
+      - name: shots/shots_*
