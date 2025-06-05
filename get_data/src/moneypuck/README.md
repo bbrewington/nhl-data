@@ -27,7 +27,7 @@ The downloaded data is stored in the `data/` subfolder (which is meant to be loc
 
 1. Set up the Python environment using uv:
     ```
-    cd $(git rev-parse --show-toplevel)/get_data/moneypuck
+    cd $(git rev-parse --show-toplevel)/get_data
     uv sync
     ```
 

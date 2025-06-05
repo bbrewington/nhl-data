@@ -3,3 +3,4 @@ get_data/data/
 .env
 .ruff_cache/
 *.duckdb
+__pycache__/

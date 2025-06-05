@@ -8,24 +8,51 @@ from zipfile import ZipFile
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 DATA_DIR = Path("../data/moneypuck")
 
+def write_to_parquet(input_type, csv_filepath=None, parquet_filepath=None):
+    """_summary_
 
+    Args:
+        input_type (str): Either 'csv_file' or 'dataframe'
+        csv_filepath (str, optional): Required for input_type 'csv_file', defaults to None.
+        parquet_filepath (str, optional): Required for input_type 'dataframe', defaults to None.
+    """
+    if input_type == "csv_file":
+        assert csv_filepath is not None, "csv_filepath required for input_type 'csv_file'"
+        df = pd.read_csv(csv_filepath)
+        parquet_file_path = re.sub(r"\.csv$", ".parquet", csv_filepath)
+    elif input_type == "dataframe":
+        assert parquet_filepath is not None, "parquet_filepath required for input_type 'dataframe'"
+    
+    table = pa.Table.from_pandas(df)
+    pq.write_table(table, parquet_file_path)
+    print(f"Wrote to {parquet_file_path}")
+    
 def get_url(url, output_dir, output_filename):
-    filepath = os.path.join(output_dir, output_filename)
+    output_filepath = os.path.join(output_dir, output_filename)
 
     try:
-        print(f"Downloading {url} to {filepath}")
+        print(f"Downloading {url} to {output_filepath}")
         response = requests.get(url)
         response.raise_for_status()
 
-        with open(filepath, "wb") as f:
+        with open(output_filepath, "wb") as f:
             f.write(response.content)
+        
+        succeeded_flag = True
+        return_filepath = output_filepath
 
         print(f"Successfully downloaded {output_filename}")
     except Exception as e:
+        succeeded_flag = False
+        return_filepath = None
         print(f"Failed to download {url}: {e}")
+    
+    return succeeded_flag, return_filepath
 
 
 def fetch_hockey_stats_table(
@@ -125,7 +152,6 @@ def download_season_level(df, category=None, output_subdir=Path("season_level"))
                                 If None, download all categories
         output_dir (Path): Subdirectory to save downloaded files
     """
-    import os
 
     # Create output directory if it doesn't exist
     output_dir = DATA_DIR / output_subdir
@@ -152,8 +178,11 @@ def download_season_level(df, category=None, output_subdir=Path("season_level"))
                 # Create filename from URL
                 category = col.replace("_URL", "")
                 output_filename = f"{category}_{season}_{playoff_type}.csv"
-                get_url(url=url, output_dir=output_dir, output_filename=output_filename)
-
+                succeeded_flag, output_filepath = get_url(url=url,
+                                                          output_dir=output_dir,
+                                                          output_filename=output_filename)
+                if succeeded_flag:
+                    write_to_parquet(input_type="csv_file", csv_filepath=output_filepath)
 
 if __name__ == "__main__":
     # Fetch and parse the table
@@ -163,11 +192,11 @@ if __name__ == "__main__":
         # Display the DataFrame
         print("\nDataFrame of Hockey Stats URLs:")
         print(df.head())
-
+    
         # Save the DataFrame to a CSV file
         df.to_csv("config/hockey_stats_links.csv", index=False)
         print("\nSaved DataFrame to config/hockey_stats_links.csv")
-
+    
         # Optional: Uncomment to download the CSV files
         for category in ["Skaters", "Goalies", "Lines", "Teams"]:
             print(f"\nDownloading all {category.lower()} CSV files...")
@@ -184,7 +213,13 @@ if __name__ == "__main__":
         if not output_dir.is_dir():
             output_dir.mkdir(parents=True, exist_ok=True)
         get_url(url, output_dir, filename)
+        output_path = output_dir / filename
         if filename[-4:] == ".zip":
             print(f"Unzipping {filename}")
-            with ZipFile(output_dir / filename, "r") as zip_ref:
+            with ZipFile(output_path, "r") as zip_ref:
                 zip_ref.extractall(output_dir)
+            output_csvs = output_dir.glob("**/*.csv")
+            for csv_file in output_csvs:
+                write_to_parquet(input_type="csv_file", csv_filepath=str(csv_file))
+        else:
+            write_to_parquet(input_type="csv_file", csv_filepath=str(output_path))
