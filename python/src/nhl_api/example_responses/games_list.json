@@ -1,0 +1,60 @@
+{
+  "metadata": {
+    "endpoint_name": "games_list",
+    "url": "https://api.nhle.com/stats/rest/en/game",
+    "description": "All games (warning: large response)",
+    "collected_at": "2025-06-04T20:44:48.389656",
+    "status_code": 200,
+    "content_type": "application/json"
+  },
+  "data": {
+    "data": [
+      {
+        "id": 2024190005,
+        "easternStartTime": "2025-02-17T13:00:00",
+        "gameDate": "2025-02-17",
+        "gameNumber": 5,
+        "gameScheduleStateId": 1,
+        "gameStateId": 7,
+        "gameType": 19,
+        "homeScore": 3,
+        "homeTeamId": 62,
+        "period": 3,
+        "season": 20242025,
+        "visitingScore": 5,
+        "visitingTeamId": 60
+      },
+      {
+        "id": 2024190006,
+        "easternStartTime": "2025-02-17T20:00:00",
+        "gameDate": "2025-02-17",
+        "gameNumber": 6,
+        "gameScheduleStateId": 1,
+        "gameStateId": 7,
+        "gameType": 19,
+        "homeScore": 1,
+        "homeTeamId": 67,
+        "period": 3,
+        "season": 20242025,
+        "visitingScore": 2,
+        "visitingTeamId": 66
+      },
+      {
+        "id": 2024200007,
+        "easternStartTime": "2025-02-20T20:00:00",
+        "gameDate": "2025-02-20",
+        "gameNumber": 7,
+        "gameScheduleStateId": 1,
+        "gameStateId": 7,
+        "gameType": 20,
+        "homeScore": 2,
+        "homeTeamId": 67,
+        "period": 4,
+        "season": 20242025,
+        "visitingScore": 3,
+        "visitingTeamId": 60
+      }
+    ],
+    "total": 72738
+  }
+}

@@ -7,7 +7,7 @@ Run this to generate JSON files
 Usage:
     python collect_responses.py
     
-The script will create a 'test_responses/' directory with JSON files
+The script will create a 'example_responses/' directory with JSON files
 containing real API responses that you can then upload.
 """
 
@@ -151,7 +151,7 @@ ENDPOINTS = [
 
 def create_response_dir():
     """Create directory for storing responses"""
-    response_dir = Path("test_responses")
+    response_dir = Path("example_responses")
     response_dir.mkdir(exist_ok=True)
     return response_dir
 
