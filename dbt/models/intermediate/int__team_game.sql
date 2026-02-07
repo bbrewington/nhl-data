@@ -17,10 +17,13 @@ final as (
     select
         team_abbrs.team_abbr,
         teams.team_name,
-        team_game.* exclude (team_abbr_raw)
+        opposing_team_abbrs.team_abbr as opposing_team_abbr,
+        team_game.* exclude (team_abbr_raw, opposing_team_abbr)
     from team_game
     left join team_abbrs
         on team_game.team_abbr_raw = team_abbrs.team_abbr_raw
+    left join team_abbrs as opposing_team_abbrs
+        on team_game.opposing_team_abbr = opposing_team_abbrs.team_abbr_raw
     left join teams
         on team_abbrs.team_abbr = teams.team_abbr
 )

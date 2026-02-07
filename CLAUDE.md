@@ -5,22 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 NHL hockey data engineering pipeline with two main layers:
-1. **Python data acquisition** (`python/`) - fetches data from NHL API and MoneyPuck.com, stages locally, uploads to S3 as Parquet
+1. **Data ingestion** (`ingestion/`) - fetches data from NHL API and MoneyPuck.com, stages locally, uploads to S3 as Parquet
 2. **dbt transformations** (`dbt/`) - transforms S3-hosted Parquet data using dbt-duckdb with MotherDuck for analytics
 
 These are **separate Python environments** managed with `uv`, each with their own `pyproject.toml` and virtual environment.
 
 ## Commands
 
-### Python environment (from repo root)
+### Ingestion environment (from repo root)
 ```bash
-cd python && uv venv && uv sync       # Setup
+cd ingestion && uv venv && uv sync    # Setup
 uv run python scripts/get_nhl_api_data.py
 uv run python scripts/get_moneypuck_data.py
 uv run python scripts/write_moneypuck_to_s3.py
 ```
 
-### Tests (from python/)
+### Tests (from ingestion/)
 ```bash
 pytest                        # All tests
 pytest -m unit                # Unit tests only
@@ -31,7 +31,7 @@ pytest --snapshot-update      # Update test snapshots
 
 ### dbt environment (from dbt/)
 ```bash
-cd dbt && uv venv && uv sync          # Setup (separate venv from python/)
+cd dbt && uv venv && uv sync          # Setup (separate venv from ingestion/)
 cp profiles.yml.example profiles.yml  # Configure connection (dev=local DuckDB, prod=MotherDuck)
 cp .env.example .env                  # Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MOTHERDUCK_TOKEN
 uv run --env-file .env dbt deps       # Install dbt packages
@@ -46,7 +46,7 @@ uv run --env-file .env dbt test       # Run dbt tests only
 NHL API / MoneyPuck.com
         │
         ▼
-  python/src/          ← Python acquisition (requests + backoff, BeautifulSoup)
+  ingestion/src/       ← Data ingestion (requests + backoff, BeautifulSoup)
   nhl_api/client.py    ← NHLClient with resource pattern (.league, .teams, .players, .games)
   moneypuck/           ← CSV scraper, converts to Parquet
         │
@@ -89,6 +89,6 @@ See `docs/erd.md` for the Mermaid ERD covering Season, Game, Team, Player, Play,
 - **Team abbreviations:** normalized to 3-letter codes (handles variants like "S.J" -> "SJS") via `stg__team_abbrs`. Note: `stg__teams` has separate active/inactive era rows per `team_abbr` — use `select distinct team_abbr, team_name` when joining to avoid fan-out
 - **DuckDB reserved words:** `freeze` must be quoted as `"freeze"` in SQL when used as a bare column name
 
-## Dual directory note
+## Directory structure note
 
-`get_data/` contains an older/alternative structure with READMEs documenting NHL API endpoints and MoneyPuck data. The active code lives in `python/src/`.
+`ingestion/` and `dbt/` are **separate Python environments** — each has its own `pyproject.toml`, `uv.lock`, and virtual environment.

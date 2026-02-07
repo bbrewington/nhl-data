@@ -8,7 +8,7 @@ A data engineering project for NHL hockey data analysis.
 NHL API / MoneyPuck.com
         │
         ▼
-  python/src/          ← Python acquisition (requests + backoff, BeautifulSoup)
+  ingestion/src/       ← Data ingestion (requests + backoff, BeautifulSoup)
   nhl_api/client.py    ← NHLClient with resource pattern (.league, .teams, .players, .games)
   moneypuck/           ← CSV scraper, converts to Parquet
         │
@@ -29,8 +29,8 @@ NHL API / MoneyPuck.com
 
 ## Project Structure
 
-- `python/`: Python code for data acquisition and processing
-  - `nhl_data/`: Main package
+- `ingestion/`: Data ingestion from NHL API and MoneyPuck
+  - `src/`: Source packages (nhl_api, moneypuck, utility)
   - `scripts/`: Entry point scripts
   - `tests/`: Unit and integration tests
 - `dbt/`: dbt project for data transformation
@@ -52,8 +52,8 @@ NHL API / MoneyPuck.com
     1. Edit .env with your configuration
 1. Run the data acquisition scripts:
     ```bash
-    uv run python python/scripts/nhl_api/get_nhl_api_data.py
-    uv run python python/scripts/get_moneypuck_data.py
+    uv run python ingestion/scripts/nhl_api/get_nhl_api_data.py
+    uv run python ingestion/scripts/get_moneypuck_data.py
     ```
 1. Run dbt models:
     ```bash

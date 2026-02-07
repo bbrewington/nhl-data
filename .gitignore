@@ -1,7 +1,6 @@
-.venv/
+**/.venv/
 .ruff_cache/
 data/
-get_data/data/
 .env
 *.duckdb
 *.duckdb.wal
