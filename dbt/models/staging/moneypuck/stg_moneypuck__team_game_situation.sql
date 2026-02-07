@@ -118,11 +118,6 @@ renamed as (
         scoreAdjustedTotalShotCreditAgainst as score_adjusted_total_shot_credit_against,
         scoreFlurryAdjustedTotalShotCreditAgainst as score_flurry_adjusted_total_shot_credit_against
     from source
-),
-
-calc as (
-    select * from renamed
 )
 
-select *
-from calc
+select * from renamed

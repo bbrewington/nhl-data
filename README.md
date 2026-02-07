@@ -2,6 +2,31 @@
 
 A data engineering project for NHL hockey data analysis.
 
+## Architecture
+
+```text
+NHL API / MoneyPuck.com
+        │
+        ▼
+  python/src/          ← Python acquisition (requests + backoff, BeautifulSoup)
+  nhl_api/client.py    ← NHLClient with resource pattern (.league, .teams, .players, .games)
+  moneypuck/           ← CSV scraper, converts to Parquet
+        │
+        ▼
+  S3 (Parquet)         ← s3://bbrewington-nhl-data/moneypuck/
+        │
+        ▼
+  dbt/ (dbt-duckdb)    ← SQL transformations against S3 sources
+  staging/             ← stg_* models (materialized: table)
+  intermediate/        ← int_* models (materialized: view)
+  snapshots/           ← SCD Type 2 player tracking
+        │
+        ▼
+  DuckDB / MotherDuck  ← Analytics queries
+```
+
+![dbt DAG](./docs/dbt_dag.png)
+
 ## Project Structure
 
 - `python/`: Python code for data acquisition and processing

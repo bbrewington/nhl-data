@@ -2,6 +2,7 @@ version: 2
 
 models:
   - name: stg_moneypuck__team_game_situation
+    description: Team-level game stats by situation from MoneyPuck game-level data
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -9,3 +10,28 @@ models:
             - game_id
             - situation
   - name: stg_moneypuck__players_hist
+    description: SCD Type 2 history of player attributes from MoneyPuck allPlayersLookup snapshot
+    columns:
+      - name: dbt_scd_id
+        tests:
+          - unique
+          - not_null
+  - name: stg_moneypuck__players
+    description: Current-state player attributes filtered from players_hist (dbt_valid_to is null)
+    columns:
+      - name: mp_player_id
+        tests:
+          - unique
+          - not_null
+  - name: stg_moneypuck__shots
+    description: Shot-level event data from MoneyPuck with shooter, goalie, and game context
+    columns:
+      - name: shot_id
+        tests:
+          - not_null
+  - name: stg_moneypuck__season_segment_skater_situation
+    description: Season-level skater stats by situation from MoneyPuck, regular season and playoffs combined
+  - name: stg_moneypuck__season_segment_goalie_situation
+    description: Season-level goalie stats by situation from MoneyPuck, regular season and playoffs combined
+  - name: stg_moneypuck__season_segment_line_situation
+    description: Season-level line combination stats by situation from MoneyPuck, regular season and playoffs combined

@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg__teams
+    description: Deduplicated team reference data with normalized abbreviations and active status
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - team_abbr
+            - is_active
+    columns:
+      - name: team_abbr
+        tests:
+          - not_null
+  - name: stg__team_abbrs
+    description: Mapping of raw team abbreviations to normalized 3-letter codes (e.g. S.J -> SJS)
+    columns:
+      - name: team_abbr_raw
+        tests:
+          - unique
+          - not_null

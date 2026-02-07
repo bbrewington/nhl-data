@@ -9,17 +9,17 @@ select
     name as mp_player_name,
     position,
     team as team_abbr_raw,
-    birthDate as birth_date,
-    weight as weight_lbs,
+    birthDate::DATE as birth_date,
+    weight::INTEGER as weight_lbs,
     height,
     (height_parsed['ft']::UTINYINT * 12 + height_parsed['in']::UTINYINT) / 12 height_ft,
     nationality,
     shootsCatches as shoots_catches,
-    primaryNumber as primary_number,
+    primaryNumber::INTEGER as primary_number,
     primaryPosition as primary_position,
     dbt_scd_id,
     dbt_updated_at,
     dbt_valid_from,
     dbt_valid_to,
-    dbt_is_deleted
+    dbt_is_deleted::BOOLEAN as dbt_is_deleted
 from source

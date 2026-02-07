@@ -1,0 +1,23 @@
+moneypuck_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "moneypuck_dbt.duckdb"
+      threads: 4
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        s3_access_key_id: "{{ env_var('S3_ACCESS_KEY_ID') }}"
+        s3_secret_access_key: "{{ env_var('S3_SECRET_ACCESS_KEY') }}"
+    prod:
+      type: duckdb
+      path: "md:moneypuck_dbt?motherduck_token={{ env_var('MOTHERDUCK_TOKEN') }}"
+      threads: 8
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        s3_access_key_id: "{{ env_var('S3_ACCESS_KEY_ID') }}"
+        s3_secret_access_key: "{{ env_var('S3_SECRET_ACCESS_KEY') }}"

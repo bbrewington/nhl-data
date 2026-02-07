@@ -10,26 +10,23 @@ Local development
 
 Connecting to data
 
-To have dbt access S3, and optionally Motherduck, copy the `.env` file as follows:
+The `dev` target writes to a local DuckDB file. The `prod` target connects to MotherDuck. Both read source data from S3.
+
+1. Copy the example env file and fill in your credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-And fill out the values in the newly created `.env` file
+You need `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` for both targets. `MOTHERDUCK_TOKEN` is only needed for the `prod` target (get it from your MotherDuck account settings).
 
-Then run dbt with `uv` as shown below
-
-Note, the `--env-file` flag tells uv to load environment variables from the specified `.env` file (alternatively, set the environment variable: UV_ENV_FILE)
+1. Run dbt with environment variables loaded:
 
 ```bash
-# Read values from .env into environment variables (referenced with env_var in dbt project)
+# Option A: export from .env first
 export $(grep -v '^#' .env | xargs)
-
-# Do dbt stuff (replace everything after "dbt" with whatever you need)
 uv run dbt debug --target dev
 
-# And just for reference, you can avoid having to use the "export" step above if you pass in the --env-file parameter to uv run like this:
+# Option B: use uv's --env-file flag (no export needed)
 uv run --env-file .env dbt debug --target dev
 ```
-
