@@ -52,7 +52,7 @@ NHL API / MoneyPuck.com
     1. Edit .env with your configuration
 1. Run the data acquisition scripts:
     ```bash
-    uv run python python/scripts/get_nhl_api_data.py
+    uv run python python/scripts/nhl_api/get_nhl_api_data.py
     uv run python python/scripts/get_moneypuck_data.py
     ```
 1. Run dbt models:

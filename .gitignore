@@ -1,7 +1,8 @@
 .venv/
+.ruff_cache/
+data/
 get_data/data/
 .env
-.ruff_cache/
 *.duckdb
 *.duckdb.wal
 __pycache__/

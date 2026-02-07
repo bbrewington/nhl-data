@@ -18,7 +18,7 @@ The `dev` target writes to a local DuckDB file. The `prod` target connects to Mo
 cp .env.example .env
 ```
 
-You need `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` for both targets. `MOTHERDUCK_TOKEN` is only needed for the `prod` target (get it from your MotherDuck account settings).
+You need `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for both targets. `MOTHERDUCK_TOKEN` is only needed for the `prod` target (get it from your MotherDuck account settings).
 
 1. Run dbt with environment variables loaded:
 

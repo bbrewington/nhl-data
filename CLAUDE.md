@@ -33,7 +33,7 @@ pytest --snapshot-update      # Update test snapshots
 ```bash
 cd dbt && uv venv && uv sync          # Setup (separate venv from python/)
 cp profiles.yml.example profiles.yml  # Configure connection (dev=local DuckDB, prod=MotherDuck)
-cp .env.example .env                  # Set S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, MOTHERDUCK_TOKEN
+cp .env.example .env                  # Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MOTHERDUCK_TOKEN
 uv run --env-file .env dbt deps       # Install dbt packages
 uv run --env-file .env dbt build      # Build all models + run tests
 uv run --env-file .env dbt run --select stg_moneypuck__players  # Run single model
@@ -75,7 +75,7 @@ See `docs/erd.md` for the Mermaid ERD covering Season, Game, Team, Player, Play,
 ## Conventions
 
 - **Python:** requires >= 3.13, uses `uv` for package management, `hatchling` build backend
-- **dbt project name:** `moneypuck_dbt`, profile: `moneypuck_dbt`
+- **dbt project name:** `nhl_dbt`, profile: `nhl_dbt`
 - **dbt model naming:** `stg_<source>__<entity>` for staging, `int__<entity>` for intermediate, `seed__<entity>` for seeds
 - **NHLClient** supports context manager: `with NHLClient() as client:`
 - **HTTP retry:** NHLSession uses `backoff.on_exception` with exponential backoff on timeouts/connection errors

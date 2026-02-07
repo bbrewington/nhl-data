@@ -1,7 +1,7 @@
-name: 'moneypuck_dbt'
+name: 'nhl_dbt'
 version: '1.0.0'
 
-profile: 'moneypuck_dbt'
+profile: 'nhl_dbt'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -15,7 +15,7 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  moneypuck_dbt:
+  nhl_dbt:
     staging:
       +materialized: table
     intermediate:
