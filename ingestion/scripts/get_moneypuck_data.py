@@ -54,6 +54,24 @@ def write_to_parquet(input_type, csv_filepath=None, parquet_filepath=None):
     print(f"Wrote to {parquet_file_path}")
 
 
+def download_and_convert(url, output_dir, output_filename, session=None):
+    """Download a file and convert it to Parquet, extracting zip files first if needed."""
+    succeeded_flag, output_filepath = get_url(
+        url=url, output_dir=output_dir, output_filename=output_filename, session=session
+    )
+    if not succeeded_flag:
+        return
+
+    if output_filename.endswith(".zip"):
+        print(f"Unzipping {output_filename}")
+        with ZipFile(output_filepath, "r") as zip_ref:
+            zip_ref.extractall(output_dir)
+        for csv_file in Path(output_dir).glob("**/*.csv"):
+            write_to_parquet(input_type="csv_file", csv_filepath=str(csv_file))
+    else:
+        write_to_parquet(input_type="csv_file", csv_filepath=output_filepath)
+
+
 def get_url(url, output_dir, output_filename, session=None):
     output_filepath = os.path.join(output_dir, output_filename)
 
@@ -203,14 +221,12 @@ def download_season_level(df, category=None, output_subdir=Path("season_level"))
                 if playoff_type == "playoffs":
                     url = url.replace("/regular/", "/playoffs/")
 
-                # Create filename from URL
+                # Create filename from URL, preserving the source extension (some
+                # rows, e.g. "AllPreviousSeasonsCombined", link to .zip archives)
                 category = col.replace("_URL", "")
-                output_filename = f"{category}_{season}_{playoff_type}.csv"
-                succeeded_flag, output_filepath = get_url(
-                    url=url, output_dir=output_dir, output_filename=output_filename
-                )
-                if succeeded_flag:
-                    write_to_parquet(input_type="csv_file", csv_filepath=output_filepath)
+                ext = ".zip" if url.endswith(".zip") else ".csv"
+                output_filename = f"{category}_{season}_{playoff_type}{ext}"
+                download_and_convert(url=url, output_dir=output_dir, output_filename=output_filename)
 
 
 if __name__ == "__main__":
@@ -267,14 +283,4 @@ if __name__ == "__main__":
         output_dir = Path(f"{DATA_DIR}/{output_subdir}")
         if not output_dir.is_dir():
             output_dir.mkdir(parents=True, exist_ok=True)
-        get_url(url, output_dir, filename)
-        output_path = output_dir / filename
-        if filename[-4:] == ".zip":
-            print(f"Unzipping {filename}")
-            with ZipFile(output_path, "r") as zip_ref:
-                zip_ref.extractall(output_dir)
-            output_csvs = output_dir.glob("**/*.csv")
-            for csv_file in output_csvs:
-                write_to_parquet(input_type="csv_file", csv_filepath=str(csv_file))
-        else:
-            write_to_parquet(input_type="csv_file", csv_filepath=str(output_path))
+        download_and_convert(url=url, output_dir=output_dir, output_filename=filename)
