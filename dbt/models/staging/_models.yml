@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg__teams
+    description: Deduplicated team reference data with normalized abbreviations and active status
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - team_abbr
+            - is_active
+    columns:
+      - name: team_abbr
+        description: Normalized 3-letter team abbreviation (e.g. SJS, TBL)
+        tests:
+          - not_null
+      - name: team_name
+        description: Full team name (e.g. San Jose Sharks)
+      - name: is_active
+        description: Whether the team abbreviation is currently active (handles historical renames)
+  - name: stg__team_abbrs
+    description: Mapping of raw team abbreviations to normalized 3-letter codes (e.g. S.J -> SJS)
+    columns:
+      - name: team_abbr_raw
+        description: Raw team abbreviation as it appears in source data
+        tests:
+          - unique
+          - not_null
+      - name: team_abbr
+        description: Normalized 3-letter team abbreviation

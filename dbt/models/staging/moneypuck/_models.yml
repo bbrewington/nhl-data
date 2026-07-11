@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: stg_moneypuck__team_game_situation
+    description: Team-level game stats by situation from MoneyPuck game-level data
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - team_abbr_raw
+            - game_id
+            - situation
+  - name: stg_moneypuck__players_hist
+    description: SCD Type 2 history of player attributes from MoneyPuck allPlayersLookup snapshot
+    columns:
+      - name: dbt_scd_id
+        description: Surrogate key for each SCD Type 2 record version
+        tests:
+          - unique
+          - not_null
+      - name: mp_player_id
+        description: MoneyPuck player identifier
+      - name: mp_player_name
+        description: Player full name from MoneyPuck
+      - name: position
+        description: Player position code (L, R, C, D, G)
+      - name: team_abbr_raw
+        description: Raw team abbreviation from source data
+  - name: stg_moneypuck__players
+    description: Current-state player attributes filtered from players_hist (dbt_valid_to is null)
+    columns:
+      - name: mp_player_id
+        description: MoneyPuck player identifier
+        tests:
+          - unique
+          - not_null
+      - name: mp_player_name
+        description: Player full name from MoneyPuck
+      - name: position
+        description: Player position code (L, R, C, D, G)
+      - name: birth_date
+        description: Player date of birth
+      - name: team_abbr_raw
+        description: Raw team abbreviation from source data
+  - name: stg_moneypuck__shots
+    description: Shot-level event data from MoneyPuck with shooter, goalie, and game context
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - season
+            - game_id
+            - shot_id
+    columns:
+      - name: shot_id
+        description: Sequential shot number within a game (unique per game, not globally)
+        tests: [not_null]
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: season_yr1
+        description: First year of the season (e.g. 2024 for 2024-2025)
+      - name: team_abbr_raw
+        description: Raw team abbreviation of the shooting team
+      - name: season
+        tests: [not_null]
+  - name: stg_moneypuck__season_segment_skater_situation
+    description: Season-level skater stats by situation from MoneyPuck, regular season and playoffs combined
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - mp_player_id
+            - season_yr1
+            - team_abbr_raw
+            - situation
+            - season_segment
+  - name: stg_moneypuck__season_segment_goalie_situation
+    description: Season-level goalie stats by situation from MoneyPuck, regular season and playoffs combined
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - mp_player_id
+            - season_yr1
+            - team_abbr_raw
+            - situation
+            - season_segment
+  - name: stg_moneypuck__season_segment_line_situation
+    description: Season-level line combination stats by situation from MoneyPuck, regular season and playoffs combined
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - line_id
+            - season_yr1
+            - team_abbr_raw
+            - situation
+            - season_segment

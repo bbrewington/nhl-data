@@ -1,0 +1,24 @@
+nhl_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "nhl_dbt.duckdb"
+      threads: 4
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        s3_access_key_id: "{{ env_var('AWS_ACCESS_KEY_ID') }}"
+        s3_secret_access_key: "{{ env_var('AWS_SECRET_ACCESS_KEY') }}"
+        s3_region: "{{ env_var('AWS_DEFAULT_REGION', 'us-east-1') }}"
+    prod:
+      type: duckdb
+      path: "md:nhl_dbt?motherduck_token={{ env_var('MOTHERDUCK_TOKEN') }}"
+      threads: 8
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        s3_access_key_id: "{{ env_var('AWS_ACCESS_KEY_ID') }}"
+        s3_secret_access_key: "{{ env_var('AWS_SECRET_ACCESS_KEY') }}"

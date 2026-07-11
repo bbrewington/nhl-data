@@ -1,0 +1,371 @@
+{
+  "metadata": {
+    "endpoint_name": "team_scoreboard_stl",
+    "url": "http://api-web.nhle.com/v1/scoreboard/STL/now",
+    "description": "STL current scoreboard",
+    "collected_at": "2025-06-04T20:44:50.554066",
+    "status_code": 200,
+    "content_type": "application/json"
+  },
+  "data": {
+    "focusedDate": "2025-06-04",
+    "focusedDateCount": 3,
+    "clubTimeZone": "US/Central",
+    "clubUTCOffset": "-05:00",
+    "clubScheduleLink": "/blues/schedule",
+    "gamesByDate": [
+      {
+        "date": "2025-04-30",
+        "games": [
+          {
+            "id": 2024030155,
+            "season": 20242025,
+            "gameType": 3,
+            "gameDate": "2025-04-30",
+            "gameCenterLink": "/gamecenter/stl-vs-wpg/2025/04/30/2024030155",
+            "venue": {
+              "default": "Canada Life Centre"
+            },
+            "startTimeUTC": "2025-05-01T01:30:00Z",
+            "easternUTCOffset": "-04:00",
+            "venueUTCOffset": "-05:00",
+            "tvBroadcasts": [
+              {
+                "id": 309,
+                "market": "N",
+                "countryCode": "US",
+                "network": "ESPN",
+                "sequenceNumber": 10
+              },
+              {
+                "id": 4,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "CBC",
+                "sequenceNumber": 25
+              },
+              {
+                "id": 282,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "SN",
+                "sequenceNumber": 101
+              },
+              {
+                "id": 281,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "TVAS",
+                "sequenceNumber": 109
+              },
+              {
+                "id": 566,
+                "market": "A",
+                "countryCode": "US",
+                "network": "FDSNMW",
+                "sequenceNumber": 273
+              }
+            ],
+            "gameState": "OFF",
+            "gameScheduleState": "OK",
+            "awayTeam": {
+              "id": 19,
+              "name": {
+                "default": "St. Louis Blues",
+                "fr": "Blues de St. Louis"
+              },
+              "commonName": {
+                "default": "Blues"
+              },
+              "placeNameWithPreposition": {
+                "default": "St. Louis",
+                "fr": "de St. Louis"
+              },
+              "abbrev": "STL",
+              "score": 3,
+              "logo": "https://assets.nhle.com/logos/nhl/svg/STL_light.svg"
+            },
+            "homeTeam": {
+              "id": 52,
+              "name": {
+                "default": "Winnipeg Jets",
+                "fr": "Jets de Winnipeg"
+              },
+              "commonName": {
+                "default": "Jets"
+              },
+              "placeNameWithPreposition": {
+                "default": "Winnipeg",
+                "fr": "de Winnipeg"
+              },
+              "abbrev": "WPG",
+              "score": 5,
+              "logo": "https://assets.nhle.com/logos/nhl/svg/WPG_light.svg"
+            },
+            "ticketsLink": "https://www.nhl.com/jets/tickets/",
+            "ticketsLinkFr": "https://www.nhl.com/jets/tickets/",
+            "period": 3,
+            "periodDescriptor": {
+              "number": 3,
+              "periodType": "REG",
+              "maxRegulationPeriods": 3
+            },
+            "seriesStatus": {
+              "round": 1,
+              "seriesAbbrev": "R1",
+              "game": 5,
+              "topSeedTeamAbbrev": "WPG",
+              "topSeedWins": 3,
+              "bottomSeedTeamAbbrev": "STL",
+              "bottomSeedWins": 2
+            },
+            "threeMinRecap": "/video/stl-at-wpg-recap-6372151239112",
+            "threeMinRecapFr": "/fr/video/stl-vs-wpg-30-04-2025-resume-6372150644112"
+          }
+        ]
+      },
+      {
+        "date": "2025-05-02",
+        "games": [
+          {
+            "id": 2024030156,
+            "season": 20242025,
+            "gameType": 3,
+            "gameDate": "2025-05-02",
+            "gameCenterLink": "/gamecenter/wpg-vs-stl/2025/05/02/2024030156",
+            "venue": {
+              "default": "Enterprise Center"
+            },
+            "startTimeUTC": "2025-05-03T00:00:00Z",
+            "easternUTCOffset": "-04:00",
+            "venueUTCOffset": "-05:00",
+            "tvBroadcasts": [
+              {
+                "id": 385,
+                "market": "N",
+                "countryCode": "US",
+                "network": "TNT",
+                "sequenceNumber": 11
+              },
+              {
+                "id": 501,
+                "market": "N",
+                "countryCode": "US",
+                "network": "truTV",
+                "sequenceNumber": 14
+              },
+              {
+                "id": 519,
+                "market": "N",
+                "countryCode": "US",
+                "network": "MAX",
+                "sequenceNumber": 18
+              },
+              {
+                "id": 4,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "CBC",
+                "sequenceNumber": 25
+              },
+              {
+                "id": 282,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "SN",
+                "sequenceNumber": 101
+              },
+              {
+                "id": 281,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "TVAS",
+                "sequenceNumber": 109
+              },
+              {
+                "id": 566,
+                "market": "H",
+                "countryCode": "US",
+                "network": "FDSNMW",
+                "sequenceNumber": 273
+              }
+            ],
+            "gameState": "OFF",
+            "gameScheduleState": "OK",
+            "awayTeam": {
+              "id": 52,
+              "name": {
+                "default": "Winnipeg Jets",
+                "fr": "Jets de Winnipeg"
+              },
+              "commonName": {
+                "default": "Jets"
+              },
+              "placeNameWithPreposition": {
+                "default": "Winnipeg",
+                "fr": "de Winnipeg"
+              },
+              "abbrev": "WPG",
+              "score": 2,
+              "logo": "https://assets.nhle.com/logos/nhl/svg/WPG_light.svg"
+            },
+            "homeTeam": {
+              "id": 19,
+              "name": {
+                "default": "St. Louis Blues",
+                "fr": "Blues de St. Louis"
+              },
+              "commonName": {
+                "default": "Blues"
+              },
+              "placeNameWithPreposition": {
+                "default": "St. Louis",
+                "fr": "de St. Louis"
+              },
+              "abbrev": "STL",
+              "score": 5,
+              "logo": "https://assets.nhle.com/logos/nhl/svg/STL_light.svg"
+            },
+            "ticketsLink": "https://www.ticketmaster.com/event/0600626DC3E68A72?brand=blues&artistid=806025&wt.mc_id=NHL_TEAM_STL_HORIZONTAL_SCOREBOARD_PLAYOFFS_RD1_GM3&utm_source=NHL.com&utm_medium=client&utm_campaign=NHL_TEAM_STL&utm_content=HORIZONTAL_SCOREBOARD_PLAYOFFS_RD1_GM3",
+            "ticketsLinkFr": "https://www.ticketmaster.com/event/0600626DC3E68A72?brand=blues&artistid=806025&wt.mc_id=NHL_TEAM_STL_HORIZONTAL_SCOREBOARD_PLAYOFFS_RD1_GM3&utm_source=NHL.com&utm_medium=client&utm_campaign=NHL_TEAM_STL&utm_content=HORIZONTAL_SCOREBOARD_PLAYOFFS_RD1_GM3",
+            "period": 3,
+            "periodDescriptor": {
+              "number": 3,
+              "periodType": "REG",
+              "maxRegulationPeriods": 3
+            },
+            "seriesStatus": {
+              "round": 1,
+              "seriesAbbrev": "R1",
+              "game": 6,
+              "topSeedTeamAbbrev": "WPG",
+              "topSeedWins": 3,
+              "bottomSeedTeamAbbrev": "STL",
+              "bottomSeedWins": 3
+            },
+            "threeMinRecap": "/video/wpg-at-stl-recap-6372255776112",
+            "threeMinRecapFr": "/fr/video/wpg-vs-stl-02-05-2025-resume-6372255206112"
+          }
+        ]
+      },
+      {
+        "date": "2025-05-04",
+        "games": [
+          {
+            "id": 2024030157,
+            "season": 20242025,
+            "gameType": 3,
+            "gameDate": "2025-05-04",
+            "gameCenterLink": "/gamecenter/stl-vs-wpg/2025/05/04/2024030157",
+            "venue": {
+              "default": "Canada Life Centre"
+            },
+            "startTimeUTC": "2025-05-04T23:00:00Z",
+            "easternUTCOffset": "-04:00",
+            "venueUTCOffset": "-05:00",
+            "tvBroadcasts": [
+              {
+                "id": 403,
+                "market": "N",
+                "countryCode": "US",
+                "network": "TBS",
+                "sequenceNumber": 13
+              },
+              {
+                "id": 519,
+                "market": "N",
+                "countryCode": "US",
+                "network": "MAX",
+                "sequenceNumber": 18
+              },
+              {
+                "id": 4,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "CBC",
+                "sequenceNumber": 25
+              },
+              {
+                "id": 282,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "SN",
+                "sequenceNumber": 101
+              },
+              {
+                "id": 281,
+                "market": "N",
+                "countryCode": "CA",
+                "network": "TVAS",
+                "sequenceNumber": 109
+              },
+              {
+                "id": 566,
+                "market": "A",
+                "countryCode": "US",
+                "network": "FDSNMW",
+                "sequenceNumber": 273
+              }
+            ],
+            "gameState": "OFF",
+            "gameScheduleState": "OK",
+            "awayTeam": {
+              "id": 19,
+              "name": {
+                "default": "St. Louis Blues",
+                "fr": "Blues de St. Louis"
+              },
+              "commonName": {
+                "default": "Blues"
+              },
+              "placeNameWithPreposition": {
+                "default": "St. Louis",
+                "fr": "de St. Louis"
+              },
+              "abbrev": "STL",
+              "score": 3,
+              "logo": "https://assets.nhle.com/logos/nhl/svg/STL_light.svg"
+            },
+            "homeTeam": {
+              "id": 52,
+              "name": {
+                "default": "Winnipeg Jets",
+                "fr": "Jets de Winnipeg"
+              },
+              "commonName": {
+                "default": "Jets"
+              },
+              "placeNameWithPreposition": {
+                "default": "Winnipeg",
+                "fr": "de Winnipeg"
+              },
+              "abbrev": "WPG",
+              "score": 4,
+              "logo": "https://assets.nhle.com/logos/nhl/svg/WPG_light.svg"
+            },
+            "ticketsLink": "https://www.nhl.com/jets/tickets/",
+            "ticketsLinkFr": "https://www.nhl.com/jets/tickets/",
+            "period": 5,
+            "periodDescriptor": {
+              "number": 5,
+              "periodType": "OT",
+              "otPeriods": 2,
+              "maxRegulationPeriods": 3
+            },
+            "seriesStatus": {
+              "round": 1,
+              "seriesAbbrev": "R1",
+              "game": 7,
+              "topSeedTeamAbbrev": "WPG",
+              "topSeedWins": 4,
+              "bottomSeedTeamAbbrev": "STL",
+              "bottomSeedWins": 3
+            },
+            "threeMinRecap": "/video/stl-at-wpg-recap-6372354247112",
+            "threeMinRecapFr": "/fr/video/stl-vs-wpg-04-05-2025-resume-6372354927112"
+          }
+        ]
+      }
+    ]
+  }
+}

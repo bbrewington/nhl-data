@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "endpoint_name": "game_info",
+    "url": "http://api-web.nhle.com/v1/meta/game/2023020204",
+    "description": "Basic game information",
+    "collected_at": "2025-06-04T20:44:56.672185",
+    "status_code": 200,
+    "content_type": "application/json"
+  },
+  "data": {
+    "teams": [
+      {
+        "name": {
+          "default": "Buffalo Sabres",
+          "fr": "Sabres de Buffalo"
+        },
+        "tricode": "BUF",
+        "teamId": 7
+      },
+      {
+        "name": {
+          "default": "Minnesota Wild",
+          "fr": "Wild du Minnesota"
+        },
+        "tricode": "MIN",
+        "teamId": 30
+      }
+    ],
+    "seasonStates": {
+      "date": "2023-11-10",
+      "gameType": 2,
+      "season": 20232024
+    },
+    "gameState": "OFF"
+  }
+}

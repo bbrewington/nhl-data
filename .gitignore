@@ -1,2 +1,11 @@
-.venv
-local_sandbox/
+**/.venv/
+.ruff_cache/
+data/
+.env
+*.duckdb
+*.duckdb.wal
+__pycache__/
+dbt/.user.yml
+.claude/agents
+.claude/skills
+.claude/settings.local.json

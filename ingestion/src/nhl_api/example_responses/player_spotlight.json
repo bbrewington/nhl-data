@@ -1,0 +1,157 @@
+{
+  "metadata": {
+    "endpoint_name": "player_spotlight",
+    "url": "http://api-web.nhle.com/v1/player-spotlight",
+    "description": "Players in spotlight",
+    "collected_at": "2025-06-04T20:44:53.676781",
+    "status_code": 200,
+    "content_type": "application/json"
+  },
+  "data": [
+    {
+      "playerId": 8484144,
+      "name": {
+        "default": "Connor Bedard"
+      },
+      "playerSlug": "connor-bedard-8484144",
+      "position": "C",
+      "sweaterNumber": 98,
+      "teamId": 16,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/CHI/8484144.png",
+      "teamTriCode": "CHI",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/CHI_light.svg",
+      "sortId": 5
+    },
+    {
+      "playerId": 8471675,
+      "name": {
+        "default": "Sidney Crosby"
+      },
+      "playerSlug": "sidney-crosby-8471675",
+      "position": "C",
+      "sweaterNumber": 87,
+      "teamId": 5,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/PIT/8471675.png",
+      "teamTriCode": "PIT",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/PIT_light.svg",
+      "sortId": 2
+    },
+    {
+      "playerId": 8477934,
+      "name": {
+        "default": "Leon Draisaitl"
+      },
+      "playerSlug": "leon-draisaitl-8477934",
+      "position": "C",
+      "sweaterNumber": 29,
+      "teamId": 22,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/EDM/8477934.png",
+      "teamTriCode": "EDM",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/EDM_light.svg",
+      "sortId": 8
+    },
+    {
+      "playerId": 8475167,
+      "name": {
+        "default": "Victor Hedman"
+      },
+      "playerSlug": "victor-hedman-8475167",
+      "position": "D",
+      "sweaterNumber": 77,
+      "teamId": 14,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/TBL/8475167.png",
+      "teamTriCode": "TBL",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/TBL_light.svg",
+      "sortId": 10
+    },
+    {
+      "playerId": 8477492,
+      "name": {
+        "default": "Nathan MacKinnon"
+      },
+      "playerSlug": "nathan-mackinnon-8477492",
+      "position": "C",
+      "sweaterNumber": 29,
+      "teamId": 21,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/COL/8477492.png",
+      "teamTriCode": "COL",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/COL_light.svg",
+      "sortId": 7
+    },
+    {
+      "playerId": 8479318,
+      "name": {
+        "default": "Auston Matthews"
+      },
+      "playerSlug": "auston-matthews-8479318",
+      "position": "C",
+      "sweaterNumber": 34,
+      "teamId": 10,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/TOR/8479318.png",
+      "teamTriCode": "TOR",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/TOR_light.svg",
+      "sortId": 4
+    },
+    {
+      "playerId": 8478402,
+      "name": {
+        "default": "Connor McDavid"
+      },
+      "playerSlug": "connor-mcdavid-8478402",
+      "position": "C",
+      "sweaterNumber": 97,
+      "teamId": 22,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/EDM/8478402.png",
+      "teamTriCode": "EDM",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/EDM_light.svg",
+      "sortId": 3
+    },
+    {
+      "playerId": 8471214,
+      "name": {
+        "default": "Alex Ovechkin",
+        "cs": "Alexandr Ovečkin",
+        "fi": "Aleksandr Ovetshkin",
+        "sk": "Alexander Ovečkin"
+      },
+      "playerSlug": "alex-ovechkin-8471214",
+      "position": "L",
+      "sweaterNumber": 8,
+      "teamId": 15,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/WSH/8471214.png",
+      "teamTriCode": "WSH",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/WSH_secondary_light.svg",
+      "sortId": 1
+    },
+    {
+      "playerId": 8478550,
+      "name": {
+        "default": "Artemi Panarin",
+        "cs": "Artěmij Panarin",
+        "sk": "Artemij Panarin"
+      },
+      "playerSlug": "artemi-panarin-8478550",
+      "position": "L",
+      "sweaterNumber": 10,
+      "teamId": 3,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/NYR/8478550.png",
+      "teamTriCode": "NYR",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/NYR_light.svg",
+      "sortId": 9
+    },
+    {
+      "playerId": 8479314,
+      "name": {
+        "default": "Matthew Tkachuk"
+      },
+      "playerSlug": "matthew-tkachuk-8479314",
+      "position": "L",
+      "sweaterNumber": 19,
+      "teamId": 13,
+      "headshot": "https://assets.nhle.com/mugs/nhl/20242025/FLA/8479314.png",
+      "teamTriCode": "FLA",
+      "teamLogo": "https://assets.nhle.com/logos/nhl/svg/FLA_light.svg",
+      "sortId": 6
+    }
+  ]
+}

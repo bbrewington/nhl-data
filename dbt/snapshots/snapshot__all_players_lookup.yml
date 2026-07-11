@@ -1,0 +1,9 @@
+snapshots:
+  - name: snapshot__all_players_lookup
+    relation: source('s3__bbrewington_nhl_data__moneypuck', 'reference/allPlayersLookup')
+    config:
+      schema: snapshots
+      strategy: check
+      unique_key: playerId
+      check_cols: all
+      hard_deletes: new_record

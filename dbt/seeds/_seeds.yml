@@ -1,0 +1,22 @@
+version: 2
+
+seeds:
+  - name: seed__teams
+    columns:
+      - name: team_abbr_raw
+        description: Includes team abbreviations like "S.J" (maps to team_abbr SJS) & "T.B" (maps to team_abbr TBL)
+      - name: min_season
+        description: earliest season included in data
+      - name: max_season
+        description: latest season included in data (this will increase over time as the team stays active)
+      - name: team_name
+        description: Fully spelled out team name, e.g. "San Jose Sharks"
+      - name: team_abbr
+        description: Normalized team abbreviation - see notes in team_abbr_raw
+    config:
+      column_types:
+        team_abbr_raw: varchar(5)
+        min_season: integer
+        max_season: integer
+        team_name: varchar(50)
+        team_abbr: varchar(3)

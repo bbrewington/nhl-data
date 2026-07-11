@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nhl_api", "src/moneypuck", "src/utility"]
+
+[project]
+name = "nhl_data"
+version = "0.1.0"
+description = "NHL hockey data processing and analysis"
+authors = [
+    {name = "Brent Brewington", email = "brent.brewington@gmail.com"},
+]
+requires-python = ">=3.13"
+
+dependencies = [
+    "backoff>=2.2.1",
+    "boto3>=1.38.27",
+    "bs4>=0.0.2",
+    "pandas>=2.2.3",
+    "pyarrow>=20.0.0",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.14.0",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: fast, no network/AWS access",
+    "slow: long-running tests",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["src/nhl_proj_lineup"]  # orphaned/WIP, not in the packaged wheel

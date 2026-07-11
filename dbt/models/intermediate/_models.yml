@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: int__players
+    description: Enriched player dimension with resolved team abbreviations, team name, and derived age
+    columns:
+      - name: mp_player_id
+        description: MoneyPuck player identifier
+        tests:
+          - unique
+          - not_null
+      - name: mp_player_name
+        description: Player full name from MoneyPuck
+      - name: position
+        description: Player position code (L, R, C, D, G)
+      - name: age
+        description: Player age in years derived from birth_date
+      - name: team_abbr
+        description: Normalized 3-letter team abbreviation
+      - name: team_name
+        description: Full team name
+  - name: int__team_game
+    description: Team game stats for the 'all' situation with resolved team abbreviations and team name
+    columns:
+      - name: team_abbr
+        description: Normalized 3-letter team abbreviation
+      - name: team_name
+        description: Full team name
+      - name: opposing_team_abbr
+        description: Normalized 3-letter abbreviation of the opposing team
+      - name: game_id
+        description: NHL 10-digit game identifier
+      - name: game_date
+        description: Date the game was played
+      - name: season_yr1
+        description: First year of the season (e.g. 2024 for 2024-2025)
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - team_abbr
+            - game_id
