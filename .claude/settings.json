@@ -1,5 +1,41 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); file=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\"); if [[ \"$file\" == *\".env\"* && \"$file\" != *\".env.example\"* && \"$file\" != *\".env.example\"* ]]; then echo \"Blocked: direct .env edits are not allowed. Edit manually if needed.\"; exit 2; fi"
+          }
+        ]
+      }
+    ]
+  },
   "enabledPlugins": {
-    "dbt@dbt-agent-marketplace": true
+    "dbt@dbt-agent-marketplace": true,
+    "duckdb-skills@duckdb-skills": true,
+    "dbt-extras@dbt-agent-marketplace": true,
+    "agent-skills@addy-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "duckdb-skills": {
+      "source": {
+        "source": "github",
+        "repo": "duckdb/duckdb-skills"
+      }
+    },
+    "dbt-agent-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "dbt-labs/dbt-agent-skills"
+      }
+    },
+    "addy-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "addyosmani/agent-skills"
+      }
+    }
   }
 }

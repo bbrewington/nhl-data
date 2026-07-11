@@ -6,3 +6,6 @@ data/
 *.duckdb.wal
 __pycache__/
 dbt/.user.yml
+.claude/agents
+.claude/skills
+.claude/settings.local.json
