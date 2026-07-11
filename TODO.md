@@ -15,5 +15,4 @@ Team | ✅ | ✅ |
 
 ## Engineering gaps
 
-- `ingestion/` has no test suite (no `tests/` dir, no pytest dependency in `pyproject.toml`)
 - No linter/formatter configured anywhere in the repo (e.g. ruff)
