@@ -12,7 +12,3 @@ Player | ✅ | ✅ | NHL API: player info, game logs, stats leaders
 Play | ❌ | ✅ | nhl_api.resources.games.get_play_by_play
 Shot | ✅ | ❌ | NHL API: no dedicated endpoint; could be derived from play-by-play
 Team | ✅ | ✅ |
-
-## Engineering gaps
-
-- No linter/formatter configured anywhere in the repo (e.g. ruff)

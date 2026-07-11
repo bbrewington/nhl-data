@@ -28,6 +28,13 @@ uv run pytest tests/nhl_api/test_teams.py -v   # Single file
 ```
 Tests mock at the `NHLSession.get_url` / `requests` / `boto3` boundary; `nhl_api` resource tests reuse the captured fixtures in `src/nhl_api/example_responses/*.json` via the `example_response` fixture in `tests/conftest.py`. `tests/` mirrors `src/` 1:1.
 
+### Lint/format (from ingestion/)
+```bash
+uv run ruff check .     # Lint
+uv run ruff format .    # Format
+```
+`src/nhl_proj_lineup/` is excluded (orphaned/WIP, not in the packaged wheel). `dbt/` has no Python to lint.
+
 ### dbt environment (from dbt/)
 ```bash
 cd dbt && uv venv && uv sync          # Setup (separate venv from ingestion/)
