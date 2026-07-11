@@ -18,7 +18,9 @@ def test_upload_file_to_s3_calls_upload_fileobj(tmp_path, mock_s3):
         content=f.read(), bucket=bucket, key=key
     )
 
-    aws.upload_file_to_s3(file_path=file_path, bucket_name="my-bucket", dest_object_name="moneypuck/skaters.parquet")
+    aws.upload_file_to_s3(
+        file_path=file_path, bucket_name="my-bucket", dest_object_name="moneypuck/skaters.parquet"
+    )
 
     assert mock_s3.upload_fileobj.call_count == 1
     assert read_while_open == {

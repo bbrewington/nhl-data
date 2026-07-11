@@ -14,8 +14,10 @@ def example_response():
     produced by scripts/nhl_api/collect_responses.py. get_url() itself returns
     only the body, so callers get that shape here too.
     """
+
     def _load(name: str):
         return json.loads((EXAMPLES / f"{name}.json").read_text())["data"]
+
     return _load
 
 

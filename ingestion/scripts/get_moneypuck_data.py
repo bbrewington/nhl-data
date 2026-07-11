@@ -48,11 +48,12 @@ def write_to_parquet(input_type, csv_filepath=None, parquet_filepath=None):
         parquet_file_path = re.sub(r"\.csv$", ".parquet", csv_filepath)
     elif input_type == "dataframe":
         assert parquet_filepath is not None, "parquet_filepath required for input_type 'dataframe'"
-    
+
     table = pa.Table.from_pandas(df)
     pq.write_table(table, parquet_file_path)
     print(f"Wrote to {parquet_file_path}")
-    
+
+
 def get_url(url, output_dir, output_filename, session=None):
     output_filepath = os.path.join(output_dir, output_filename)
 
@@ -64,7 +65,7 @@ def get_url(url, output_dir, output_filename, session=None):
 
         with open(output_filepath, "wb") as f:
             f.write(response.content)
-        
+
         succeeded_flag = True
         return_filepath = output_filepath
 
@@ -73,7 +74,7 @@ def get_url(url, output_dir, output_filename, session=None):
         succeeded_flag = False
         return_filepath = None
         print(f"Failed to download {url}: {e}")
-    
+
     return succeeded_flag, return_filepath
 
 
@@ -205,18 +206,29 @@ def download_season_level(df, category=None, output_subdir=Path("season_level"))
                 # Create filename from URL
                 category = col.replace("_URL", "")
                 output_filename = f"{category}_{season}_{playoff_type}.csv"
-                succeeded_flag, output_filepath = get_url(url=url,
-                                                          output_dir=output_dir,
-                                                          output_filename=output_filename)
+                succeeded_flag, output_filepath = get_url(
+                    url=url, output_dir=output_dir, output_filename=output_filename
+                )
                 if succeeded_flag:
                     write_to_parquet(input_type="csv_file", csv_filepath=output_filepath)
+
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--local-html", type=str, default=None, help="Path to local HTML file saved from moneypuck.com/data.htm")
-    parser.add_argument("--cf-clearance", type=str, default=None, help="Cloudflare cf_clearance cookie value from browser (required for moneypuck.com downloads)")
+    parser.add_argument(
+        "--local-html",
+        type=str,
+        default=None,
+        help="Path to local HTML file saved from moneypuck.com/data.htm",
+    )
+    parser.add_argument(
+        "--cf-clearance",
+        type=str,
+        default=None,
+        help="Cloudflare cf_clearance cookie value from browser (required for moneypuck.com downloads)",
+    )
     args = parser.parse_args()
 
     if args.cf_clearance:
@@ -231,14 +243,14 @@ if __name__ == "__main__":
         # Display the DataFrame
         print("\nDataFrame of Hockey Stats URLs:")
         print(df.head())
-    
+
         # Save the DataFrame to a CSV file
         config_output_dir = SCRIPT_DIR.parent / "src" / "moneypuck" / "config"
         config_output_dir.mkdir(parents=True, exist_ok=True)
         hockey_stats_csv = config_output_dir / "hockey_stats_links.csv"
         df.to_csv(hockey_stats_csv, index=False)
         print(f"\nSaved DataFrame to {hockey_stats_csv}")
-    
+
         # Optional: Uncomment to download the CSV files
         for category in ["Skaters", "Goalies", "Lines", "Teams"]:
             print(f"\nDownloading all {category.lower()} CSV files...")

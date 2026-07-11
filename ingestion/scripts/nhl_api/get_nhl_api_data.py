@@ -11,9 +11,9 @@ teams = client.league.list_team_info()
 team_stats = client.teams.get_stats("STL", "now")
 schedule = client.teams.get_schedule("STL")
 
-# Player operations  
+# Player operations
 player = client.players.get(8478402)
-game_log = client.players.get_game_log(8478402, 20232024, 'regular')
+game_log = client.players.get_game_log(8478402, 20232024, "regular")
 
 # Game operations
 boxscore = client.games.get_boxscore(2023020204)

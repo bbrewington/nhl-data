@@ -28,6 +28,7 @@ dependencies = [
 dev = [
     "pytest>=8.4.0",
     "pytest-mock>=3.14.0",
+    "ruff>=0.14.0",
 ]
 
 [tool.pytest.ini_options]
@@ -35,3 +36,7 @@ markers = [
     "unit: fast, no network/AWS access",
     "slow: long-running tests",
 ]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["src/nhl_proj_lineup"]  # orphaned/WIP, not in the packaged wheel

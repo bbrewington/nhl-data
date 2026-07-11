@@ -1,12 +1,11 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from utility.aws import run_s3_upload_fileext
 
 load_dotenv()
 DATA_DIR = Path("../data/moneypuck")
 S3_BUCKET = os.getenv("S3_BUCKET_NAME")
-
-from utility.aws import run_s3_upload_fileext
 
 run_s3_upload_fileext(data_dir=DATA_DIR, file_ext="parquet")
 
@@ -33,7 +32,7 @@ run_s3_upload_fileext(data_dir=DATA_DIR, file_ext="parquet")
 # def upload_file(file_path: Path, bucket_name, dest_object_name, verbose=False):
 #     if verbose:
 #         print(f"Writing {file_path} to s3://{bucket_name}/{dest_object_name}")
-    
+
 #     with file_path.open("rb") as f:
 #         s3.upload_fileobj(f, bucket_name, dest_object_name)
 

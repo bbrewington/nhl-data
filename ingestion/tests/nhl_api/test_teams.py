@@ -25,13 +25,17 @@ def test_get_info_raises_when_team_not_found(teams, mock_session, example_respon
 
 
 def test_get_stats_season_game_type(teams, mock_session):
-    teams.get_stats(team_code="STL", stat_type="season_game_type", season=20232024, game_type="regular")
+    teams.get_stats(
+        team_code="STL", stat_type="season_game_type", season=20232024, game_type="regular"
+    )
 
     mock_session.get_url.assert_called_once_with("/v1/club-stats/STL/20232024/2")
 
 
 def test_get_stats_season_game_type_playoffs(teams, mock_session):
-    teams.get_stats(team_code="STL", stat_type="season_game_type", season=20232024, game_type="playoffs")
+    teams.get_stats(
+        team_code="STL", stat_type="season_game_type", season=20232024, game_type="playoffs"
+    )
 
     mock_session.get_url.assert_called_once_with("/v1/club-stats/STL/20232024/3")
 

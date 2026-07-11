@@ -51,9 +51,7 @@ def test_get_stats_leaders_current_no_filters(players, mock_session):
 def test_get_stats_leaders_with_season_and_game_type(players, mock_session):
     players.get_stats_leaders(player_type="goalie", season=20232024, game_type="regular")
 
-    mock_session.get_url.assert_called_once_with(
-        "/v1/goalie-stats-leaders/20232024/2", params={}
-    )
+    mock_session.get_url.assert_called_once_with("/v1/goalie-stats-leaders/20232024/2", params={})
 
 
 def test_get_stats_leaders_with_categories_and_limit(players, mock_session):
