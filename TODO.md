@@ -12,3 +12,8 @@ Player | ✅ | ✅ | NHL API: player info, game logs, stats leaders
 Play | ❌ | ✅ | nhl_api.resources.games.get_play_by_play
 Shot | ✅ | ❌ | NHL API: no dedicated endpoint; could be derived from play-by-play
 Team | ✅ | ✅ |
+
+## Engineering gaps
+
+- `ingestion/` has no test suite (no `tests/` dir, no pytest dependency in `pyproject.toml`)
+- No linter/formatter configured anywhere in the repo (e.g. ruff)

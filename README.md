@@ -32,7 +32,6 @@ NHL API / MoneyPuck.com
 - `ingestion/`: Data ingestion from NHL API and MoneyPuck
   - `src/`: Source packages (nhl_api, moneypuck, utility)
   - `scripts/`: Entry point scripts
-  - `tests/`: Unit and integration tests
 - `dbt/`: dbt project for data transformation
 - `data/`: Local data storage (git-ignored)
 
@@ -73,43 +72,3 @@ NHL API / MoneyPuck.com
 ## License
 
 MIT
-
-
-## Test Notes
-
-### Running Tests
-#### Basic test run
-```bash
-pytest
-```
-Run with coverage
-```bash
-bashpytest --cov=nhl_api --cov-report=html
-```
-
-Run specific test categories
-
-Unit tests only
-```bash
-pytest -m unit
-```
-
-Integration tests only
-```bash
-pytest -m integration
-```
-
-Skip slow tests
-```bash
-pytest -m "not slow"
-```
-
-Update snapshots
-```bash
-pytest --snapshot-update
-```
-
-Update specific test snapshots
-```bash
-pytest test_integration.py::TestNHLClientIntegration::test_get_team_stats_season_snapshot --snapshot-update
-```

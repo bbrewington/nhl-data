@@ -15,24 +15,15 @@ These are **separate Python environments** managed with `uv`, each with their ow
 ### Ingestion environment (from repo root)
 ```bash
 cd ingestion && uv venv && uv sync    # Setup
-uv run python scripts/get_nhl_api_data.py
+uv run python scripts/nhl_api/get_nhl_api_data.py
 uv run python scripts/get_moneypuck_data.py
 uv run python scripts/write_moneypuck_to_s3.py
-```
-
-### Tests (from ingestion/)
-```bash
-pytest                        # All tests
-pytest -m unit                # Unit tests only
-pytest -m integration         # Integration tests only
-pytest -m "not slow"          # Skip slow tests
-pytest --snapshot-update      # Update test snapshots
 ```
 
 ### dbt environment (from dbt/)
 ```bash
 cd dbt && uv venv && uv sync          # Setup (separate venv from ingestion/)
-cp profiles.yml.example profiles.yml  # Configure connection (dev=local DuckDB, prod=MotherDuck)
+# profiles.yml already exists (gitignored) — dev=local DuckDB, prod=MotherDuck
 cp .env.example .env                  # Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MOTHERDUCK_TOKEN
 uv run --env-file .env dbt deps       # Install dbt packages
 uv run --env-file .env dbt build      # Build all models + run tests
@@ -68,6 +59,11 @@ NHL API / MoneyPuck.com
 
 ### Key dbt macro
 - `game_id_attrs(game_id_colname)` in `dbt/macros/game_id_attrs.sql` - parses NHL 10-digit game IDs into game_type, game_number, and playoff metadata
+
+### SCD snapshot pattern
+- `dbt/snapshots/*.yml` (YAML-only dbt snapshots, e.g. `snapshot__all_players_lookup`) track SCD Type 2 history directly off S3 sources
+- `staging/**/base/` models (e.g. `stg_moneypuck__players_hist.sql`) select from a snapshot and do the real column parsing/renaming
+- The non-`base` staging model of the same name (e.g. `stg_moneypuck__players.sql`) just filters the `base` model to current rows (`dbt_valid_to is null and dbt_is_deleted = FALSE`) — edit the `base` model, not the wrapper, when changing transformation logic
 
 ### Entity model
 See `docs/erd.md` for the Mermaid ERD covering Season, Game, Team, Player, Play, Shot, Goal, Penalty relationships.
