@@ -20,6 +20,14 @@ uv run python scripts/get_moneypuck_data.py
 uv run python scripts/write_moneypuck_to_s3.py
 ```
 
+### Tests (from ingestion/)
+```bash
+uv run pytest                 # All tests — no network/AWS access required
+uv run pytest -m "not slow"   # Skip slow tests (no tests marked slow yet)
+uv run pytest tests/nhl_api/test_teams.py -v   # Single file
+```
+Tests mock at the `NHLSession.get_url` / `requests` / `boto3` boundary; `nhl_api` resource tests reuse the captured fixtures in `src/nhl_api/example_responses/*.json` via the `example_response` fixture in `tests/conftest.py`. `tests/` mirrors `src/` 1:1.
+
 ### dbt environment (from dbt/)
 ```bash
 cd dbt && uv venv && uv sync          # Setup (separate venv from ingestion/)

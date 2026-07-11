@@ -23,3 +23,15 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-mock>=3.14.0",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: fast, no network/AWS access",
+    "slow: long-running tests",
+]
