@@ -1,217 +1,371 @@
-# Tasks: Ingestion Test Suite
+# Tasks: NHL Play-by-Play Data Pipeline
 
-Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/ingestion_test_suite.md](../docs/features/ingestion_test_suite.md)
+Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../docs/features/nhl_play_by_play.md)
 
-## Task 1: Add pytest deps and markers, create conftest.py fixtures
+**Note:** This plan adapts the spec's ingestion design (dlt + Pydantic) to the project's existing plain-script + Parquet + S3 + dbt-duckdb pattern. See `tasks/plan.md` Architecture Decisions for why.
 
-**Description:** Add `pytest` and `pytest-mock` as dev dependencies in `ingestion/pyproject.toml`, register `unit`/`slow` markers under `[tool.pytest.ini_options]`, create the `tests/` directory with `conftest.py` providing an `example_response` fixture (loads JSON from `src/nhl_api/example_responses/`) and a `mock_session` fixture (`Mock()` standing in for `NHLSession`).
+## Task 1: `ingestion/scripts/get_nhl_play_by_play.py`
+
+**Description:** Following the `NHLClient` context-manager pattern (per `CLAUDE.md` convention), fetch play-by-play for a hardcoded list of game IDs via `client.games.get_play_by_play(game_id)`. Flatten the `plays` array into one row per event (event_id, period info, time_in_period, time_remaining, situation_code, type_code, type_desc_key, and all `details.*` fields) and write to `data/nhl_api/play_by_play/game_id={game_id}/events.parquet`. Also extract `rosterSpots` into `data/nhl_api/game_rosters/game_id={game_id}/rosters.parquet`.
 
 **Acceptance criteria:**
-- [x] `uv run pytest --markers` lists `unit` and `slow` with no "unknown marker" warnings anywhere else in the run
-- [x] `example_response("team_info_list")` returns the parsed contents of `src/nhl_api/example_responses/team_info_list.json`
-- [x] `mock_session` fixture yields a `Mock()` with a `get_url` attribute usable via `mock_session.get_url.assert_called_once_with(...)`
+- [ ] Running the script against the live API for the hardcoded game list produces one `events.parquet` and one `rosters.parquet` per game, correctly partitioned by `game_id=`
+- [ ] `details.*` fields are flattened as columns, not left as a nested struct
+- [ ] Event count per game roughly matches what's visible in the NHL.com game center for that game (spot-check 1-2 games)
 
 **Verification:**
-- [x] `cd ingestion && uv run pytest` — collects 0 tests, exits 0, no errors
-- [x] Temporarily add one throwaway test asserting `example_response("player_8478402_mcdavid")["playerId"] == 8478402` (or similar), confirm it passes, then delete it before committing
+- [ ] Manual run against 2-3 games from the hardcoded list, inspect the Parquet output with `duckdb` or `pandas`
+- [ ] `uv run ruff check` / `uv run ruff format --check` clean
 
-**Dependencies:** None
+**Dependencies:** None (needs a concrete game ID list — see Open Questions in plan.md)
 
 **Files likely touched:**
-- `ingestion/pyproject.toml`
-- `ingestion/tests/conftest.py`
+- `ingestion/scripts/get_nhl_play_by_play.py`
+
+**Estimated scope:** Medium: 1 file, nontrivial flattening logic
+
+---
+
+## Task 2: `ingestion/scripts/get_nhl_boxscores.py`
+
+**Description:** Fetch boxscores for the same hardcoded game list via `client.games.get_boxscore(game_id)`. Flatten `playerByGameStats.{awayTeam,homeTeam}.{forwards,defense,goalies}` into one row per player-game with `team_id`/`position_group` derived from which nested key it came from. Write to `data/nhl_api/boxscores/game_id={game_id}/boxscore.parquet`.
+
+**Acceptance criteria:**
+- [ ] One row per player who appeared in the game, with `position_group` correctly set (forward/defense/goalie) and `team_id` correctly set for home vs. away
+- [ ] All stat columns from the source (goals, assists, shots, hits, toi, etc.) are preserved
+
+**Verification:**
+- [ ] Manual run against the same 2-3 games as Task 1, inspect output
+- [ ] Row count per game matches boxscore player count (both teams combined)
+
+**Dependencies:** None (same game ID list as Task 1)
+
+**Files likely touched:**
+- `ingestion/scripts/get_nhl_boxscores.py`
+
+**Estimated scope:** Small-Medium: 1 file
+
+---
+
+## Task 3: `ingestion/scripts/write_nhl_api_to_s3.py`
+
+**Description:** Shared S3 uploader for everything under `data/nhl_api/**` (play-by-play, boxscores, game rosters — and shift charts, if that ever gets built). The existing `run_s3_upload_fileext` in `utility/aws.py` builds keys from `file.parts[-3:]`, which is correct for MoneyPuck's 3-level layout but wrong for the NHL API's 4-level layout (`nhl_api/{dataset}/game_id={id}/{file}.parquet`). Either add a `path_parts` param to the existing utility or construct keys explicitly in this script — don't blindly copy `write_moneypuck_to_s3.py`.
+
+**Acceptance criteria:**
+- [ ] Uploads produce S3 keys of the form `nhl_api/{dataset}/game_id={game_id}/{filename}.parquet` (4 parts preserved, not 3)
+- [ ] Existing MoneyPuck upload path (`write_moneypuck_to_s3.py`) is unaffected
+
+**Verification:**
+- [ ] Run against Task 1/2 output, verify actual S3 key structure with `aws s3 ls` (not just "upload succeeded")
+- [ ] Existing MoneyPuck upload script still works unchanged
+
+**Dependencies:** Task 1, Task 2 (needs real files to upload)
+
+**Files likely touched:**
+- `ingestion/scripts/write_nhl_api_to_s3.py`
+- `ingestion/src/utility/aws.py` (only if extending `run_s3_upload_fileext` rather than writing key logic standalone)
 
 **Estimated scope:** Small: 1-2 files
 
 ---
 
-## Task 2: `tests/nhl_api/test_session.py`
+## Checkpoint: Ingestion (Phase 1)
 
-**Description:** Test `NHLSession.get_url` directly (not through a resource) with `requests.Session.get` mocked. Cover both `base_url_type` values, `response_type='json'` vs `'text'`, `params` passthrough, the `ValueError` on bad `base_url_type`/`response_type`, and the `SystemExit` raised on `HTTPError`.
+- [ ] Both scripts run end-to-end against the live API and produce correctly-partitioned Parquet
+- [ ] S3 upload verified by inspecting actual keys, not just script exit code
+- [ ] One game's play-by-play event count spot-checked against NHL.com
+
+---
+
+## Task 4: Add `s3__bbrewington_nhl_data__nhl_api` source
+
+**Description:** Add a new source block to `dbt/models/staging/_sources.yml` for the NHL API S3 data, following the Hive-partitioned-glob pattern already proposed in the shift-charts design doc: `external_location: "s3://bbrewington-nhl-data/nhl_api/{name}.parquet"` with table entries for `play_by_play/game_id=*/events`, `boxscores/game_id=*/boxscore`, `game_rosters/game_id=*/rosters`.
 
 **Acceptance criteria:**
-- [x] `base_url_type='default'` hits `http://api-web.nhle.com` + endpoint; `base_url_type='stats'` hits `https://api.nhle.com/stats/rest` + endpoint
-- [x] Invalid `base_url_type` raises `ValueError`; invalid `response_type` raises `ValueError`
-- [x] An `HTTPError` from the mocked response's `raise_for_status()` results in `pytest.raises(SystemExit)`
-- [x] `params` dict is passed through to the underlying `requests` call
+- [ ] `dbt show --select source('s3__bbrewington_nhl_data__nhl_api', 'play_by_play/game_id=*/events')` (or equivalent) returns rows from all uploaded games, not just one
+- [ ] If the `game_id=*` glob doesn't resolve correctly in dbt-duckdb, fall back to a flat glob and document why in a comment
 
 **Verification:**
-- [x] `uv run pytest tests/nhl_api/test_session.py -v` — all green
+- [ ] `dbt run-operation` or `dbt show` against each new source table succeeds and returns the expected row count (sum across all games uploaded in Phase 1)
 
-**Dependencies:** Task 1
+**Dependencies:** Task 3 (data must be in S3 first)
 
 **Files likely touched:**
-- `ingestion/tests/nhl_api/test_session.py`
+- `dbt/models/staging/_sources.yml`
+
+**Estimated scope:** Small: 1 file, but resolve the glob-behavior risk before moving on
+
+---
+
+## Task 5: `stg_nhl_api__play_by_play_events.sql`
+
+**Description:** Staging model over the play-by-play source. Rename to snake_case, cast `game_id` to integer and coordinates to float, dedupe on `(game_id, event_id)`, normalize `type_desc_key` (hyphens to underscores), and parse `situation_code` into `home_goalie_on_ice`/`home_skaters`/`away_skaters`/`away_goalie_on_ice`. Add `loaded_at`.
+
+**Acceptance criteria:**
+- [ ] `unique` + `not_null` schema tests pass on `(game_id, event_id)`
+- [ ] `accepted_values` test passes on `type_desc_key` against the known event-type list from the spec
+- [ ] `situation_code` parsing produces correct skater counts for at least one manually verified 5v5, one PP, and one empty-net event
+
+**Verification:**
+- [ ] `dbt build --select stg_nhl_api__play_by_play_events` green
+- [ ] Manual spot-check of 3-5 rows against the raw JSON for one game
+
+**Dependencies:** Task 4
+
+**Files likely touched:**
+- `dbt/models/staging/nhl_api/stg_nhl_api__play_by_play_events.sql`
+- `dbt/models/staging/nhl_api/_models.yml`
+
+**Estimated scope:** Medium: 1-2 files, `situation_code` parsing needs care
+
+---
+
+## Task 6: `stg_nhl_api__boxscores.sql`
+
+**Description:** Staging model over the boxscores source. Rename and cast, parse `toi` (`"18:42"`) into `toi_seconds` (integer), dedupe on `(game_id, player_id)`.
+
+**Acceptance criteria:**
+- [ ] `unique` + `not_null` on `(game_id, player_id)`
+- [ ] `toi_seconds` matches manual conversion for a handful of spot-checked rows
+
+**Verification:**
+- [ ] `dbt build --select stg_nhl_api__boxscores` green
+
+**Dependencies:** Task 4
+
+**Files likely touched:**
+- `dbt/models/staging/nhl_api/stg_nhl_api__boxscores.sql`
+- `dbt/models/staging/nhl_api/_models.yml`
 
 **Estimated scope:** Small: 1 file
 
 ---
 
-## Task 3: `tests/nhl_api/test_client.py`
+## Task 7: `stg_nhl_api__game_rosters.sql`
 
-**Description:** Test `NHLClient.__init__` wires up `.league`/`.teams`/`.players`/`.games` as the correct resource types sharing one `NHLSession`, and that the context manager (`__enter__`/`__exit__`) calls `close()` on the session.
+**Description:** Staging model over the game-rosters source. One row per player per game with `team_id`, `position`, `sweater_number`.
 
 **Acceptance criteria:**
-- [x] `NHLClient().league` is a `LeagueResource` (same for teams/players/games)
-- [x] All four resources share the same `session` instance
-- [x] `with NHLClient() as client:` calls `session.close()` on exit
+- [ ] `unique` + `not_null` on `(game_id, player_id)`
+- [ ] Row count per game matches the boxscore player count from Task 6 (cross-check, not just "runs without error")
 
 **Verification:**
-- [x] `uv run pytest tests/nhl_api/test_client.py -v` — all green
+- [ ] `dbt build --select stg_nhl_api__game_rosters` green
 
-**Dependencies:** Task 1
+**Dependencies:** Task 4
 
 **Files likely touched:**
-- `ingestion/tests/nhl_api/test_client.py`
+- `dbt/models/staging/nhl_api/stg_nhl_api__game_rosters.sql`
+- `dbt/models/staging/nhl_api/_models.yml`
 
 **Estimated scope:** Small: 1 file
 
 ---
 
-## Task 4: `tests/nhl_api/test_league.py`
+## Checkpoint: Staging (Phase 2)
 
-**Description:** Test `LeagueResource`'s five methods using `mock_session`: `get_schedule_calendar` (including the `date < "1916-12-19"` `ValueError`), `list_season_ids`, `get_standings` (all three branches: `season_info`, `date`, neither), `list_team_info`, `list_games`, `get_glossary`.
-
-**Acceptance criteria:**
-- [x] Each method's endpoint string is asserted exactly via `mock_session.get_url.assert_called_once_with(...)`
-- [x] `get_schedule_calendar`'s `ValueError` branch is covered
-- [x] `get_standings`'s three branches each produce the right endpoint
-
-**Verification:**
-- [x] `uv run pytest tests/nhl_api/test_league.py -v` — all green
-
-**Dependencies:** Task 1
-
-**Files likely touched:**
-- `ingestion/tests/nhl_api/test_league.py`
-
-**Estimated scope:** Small: 1 file
+- [ ] `dbt build --select staging.nhl_api` succeeds against real S3 data
+- [ ] All three staging models pass their schema tests
+- [ ] Row counts cross-checked between rosters and boxscores for at least one game
 
 ---
 
-## Task 5: `tests/nhl_api/test_teams.py`
+## Task 8: `int_nhl__events_enriched.sql`
 
-**Description:** Test `TeamsResource`. `get_info` is the interesting one — it internally constructs its own `LeagueResource(self.session)` and filters `list_team_info()['data']`, so use the `example_response("team_info_list")` fixture as the mocked return value and cover both the found and "not found" (`ValueError`) paths. Cover `get_stats`'s three `stat_type` branches plus its `ValueError`s, `get_scoreboard`, and `get_schedule`'s branches plus its `ValueError`.
+**Description:** Join `stg_nhl_api__play_by_play_events` to team/player dimensions (`stg__team_abbrs`, `int__players` — same join pattern as `int__player_shifts` would use per the shift-charts doc). Add `is_home_team_event`, derive `strength_state` from the parsed situation-code fields (5v5, 5v4, 4v5, 4v4, 3v3, 5v3, 3v5, empty_net, other), normalize coordinates so offensive zone is always positive X, add `game_seconds` (continuous clock across periods).
 
 **Acceptance criteria:**
-- [x] `get_info` returns the matching team dict from the fixture when the id exists
-- [x] `get_info` raises `ValueError` when the id doesn't exist in the fixture
-- [x] `get_stats` covers `season_game_type` (incl. missing-args `ValueError`), `by_season`, `now`, and invalid `stat_type`
-- [x] `get_schedule` covers `schedule_type` branches and its `ValueError`
+- [ ] `strength_state` correctly classifies all 9 spec-defined states for known example rows
+- [ ] Coordinate normalization verified empirically: shot-on-goal events for a team cluster toward positive X in the offensive zone across periods (not flipping direction each period)
+- [ ] `game_seconds` is monotonically non-decreasing within a game (excluding intermission gaps, which aren't tracked — document this)
 
 **Verification:**
-- [x] `uv run pytest tests/nhl_api/test_teams.py -v` — all green
+- [ ] `dbt build --select int_nhl__events_enriched` green
+- [ ] Manual cross-check: total PP time for one game roughly matches the box score's PP time listed on NHL.com
 
-**Dependencies:** Task 1 (needs `example_response` fixture and `team_info_list.json`)
+**Dependencies:** Task 5
 
 **Files likely touched:**
-- `ingestion/tests/nhl_api/test_teams.py`
+- `dbt/models/intermediate/nhl/int_nhl__events_enriched.sql`
+- `dbt/models/intermediate/nhl/_models.yml`
 
-**Estimated scope:** Small: 1 file
+**Estimated scope:** Medium: 1-2 files, this is the highest-risk model in the plan (coordinate normalization has no documented ground truth)
 
 ---
 
-## Task 6: `tests/nhl_api/test_players.py`
+## Task 9: `int_nhl__shot_events.sql`
 
-**Description:** Test `PlayersResource`: `get`, `get_game_log` (both `ValueError`s — bad `game_type`, bad `season_id` format), `get_game_log_current`, `get_stats_leaders` (both `player_type` values, with/without `season`+`game_type`, with/without `categories`/`limit`, and its `ValueError`), `get_spotlight`.
+**Description:** Filter `int_nhl__events_enriched` to shot-attempt events (`shot_on_goal`, `goal`, `missed_shot`, `blocked_shot`). Add `is_corsi_event`/`is_fenwick_event`/`is_shot_on_goal`/`is_goal` flags, `shot_distance`/`shot_angle` from normalized coordinates, `is_rebound` (within 3s of a prior shot attempt by either team) and `is_rush_shot` (within 4s of an event in another zone) flags.
 
 **Acceptance criteria:**
-- [x] `get_game_log`'s two `ValueError` branches are both covered
-- [x] `get_stats_leaders` endpoint construction is verified for all four combinations of (season/game_type present or not) × (categories/limit present or not)
-- [x] `get_stats_leaders` invalid `player_type` raises `ValueError`
+- [ ] Corsi/Fenwick/SOG/goal flags are mutually consistent (e.g. every goal is also a Corsi, Fenwick, and SOG event)
+- [ ] `shot_distance`/`shot_angle` formulas match the spec's documented math
+- [ ] `is_rebound`/`is_rush_shot` produce a plausible (non-zero, non-majority) share of shots for a sample game
 
 **Verification:**
-- [x] `uv run pytest tests/nhl_api/test_players.py -v` — all green
+- [ ] `dbt build --select int_nhl__shot_events` green
+- [ ] Total shot-attempt count for one game roughly matches a public source (Natural Stat Trick / Hockey Reference)
 
-**Dependencies:** Task 1
+**Dependencies:** Task 8
 
 **Files likely touched:**
-- `ingestion/tests/nhl_api/test_players.py`
+- `dbt/models/intermediate/nhl/int_nhl__shot_events.sql`
+- `dbt/models/intermediate/nhl/_models.yml`
 
-**Estimated scope:** Small: 1 file
+**Estimated scope:** Medium: 1-2 files
 
 ---
 
-## Task 7: `tests/nhl_api/test_games.py`
+## Task 10: `int_nhl__game_strength_states.sql`
 
-**Description:** Test `GamesResource`'s five methods: `get_play_by_play`, `get_landing`, `get_boxscore`, `get_info`, `get_shift_charts` (note: uses `base_url_type='stats'` and a query-string-style endpoint, not a path segment).
+**Description:** From `int_nhl__events_enriched`, build a timeline of contiguous strength-state periods per game: `game_id`, `strength_state`, `period`, `start_game_seconds`, `end_game_seconds`, `duration_seconds`. This is the basis for rate stats (CF/60 etc.) in Phase 5.
 
 **Acceptance criteria:**
-- [x] All five methods' endpoint strings asserted exactly
-- [x] `get_shift_charts` asserted with `base_url_type='stats'`
+- [ ] For a sample game, `sum(duration_seconds)` across all rows equals total game length (regulation + OT, accounting for the game's actual periods)
+- [ ] No overlapping or gapped intervals for a given game
 
 **Verification:**
-- [x] `uv run pytest tests/nhl_api/test_games.py -v` — all green
+- [ ] `dbt build --select int_nhl__game_strength_states` green
+- [ ] Manual duration-sum check against total game seconds for 1-2 sample games
 
-**Dependencies:** Task 1
+**Dependencies:** Task 8
 
 **Files likely touched:**
-- `ingestion/tests/nhl_api/test_games.py`
+- `dbt/models/intermediate/nhl/int_nhl__game_strength_states.sql`
+- `dbt/models/intermediate/nhl/_models.yml`
 
-**Estimated scope:** Small: 1 file
+**Estimated scope:** Medium: 1 file, gap/overlap logic needs care
 
 ---
 
-## Task 8: `tests/moneypuck/test_moneypuck.py`
+## Checkpoint: Intermediate (Phase 3)
 
-**Description:** Test `get_moneypuck_data`: URL construction from `season`, the current-season default logic (mock `datetime.datetime.now()` for both the `month >= 9` and `month < 9` branches), and that `save=False` skips the file-write path entirely (verify no `Path.mkdir`/`to_csv` calls). Mock `pandas.read_csv` so no network call happens. Per the plan's risk note: do **not** let `save=True` write to real disk — mock `Path.mkdir` and `DataFrame.to_csv` if that path needs covering, or scope this task to `save=False` only and note the gap.
-
-**Acceptance criteria:**
-- [x] URL is built as `.../seasons/{season}/{season}_skaters.csv` for an explicit `season`
-- [x] Season defaulting picks `{year}{year+1}` for month >= 9 and `{year-1}{year}` for month < 9
-- [x] No real HTTP call and no real file write occurs anywhere in this test file
-
-**Verification:**
-- [x] `uv run pytest tests/moneypuck/test_moneypuck.py -v` — all green
-- [x] `git status` shows no new files created under `data/` after running this file in isolation
-
-**Dependencies:** Task 1 (conftest structure/conventions only — no shared fixtures required)
-
-**Files likely touched:**
-- `ingestion/tests/moneypuck/test_moneypuck.py`
-
-**Estimated scope:** Small: 1 file
+- [ ] `dbt build --select intermediate.nhl` succeeds
+- [ ] Coordinate normalization and strength-state timeline both manually validated against known-good references
+- [ ] Ready to build marts on top
 
 ---
 
-## Task 9: `tests/utility/test_aws.py`
+## Task 11: Marts scaffold
 
-**Description:** Test `upload_file_to_s3` and `run_s3_upload_fileext` in `utility/aws.py`, with `boto3.client('s3')` mocked. **Resolve the import-time risk first**: `aws.py` calls `boto3.client('s3')` and `load_dotenv("../.env")` at module import time, so a `mocker.patch("boto3.client")` applied *after* import won't intercept the module-level `s3` object — patch `utility.aws.s3` directly (the already-constructed client object) instead of trying to intercept the constructor.
+**Description:** Add a `marts` block to `dbt_project.yml` (materialization — likely `table`, matching the "answer table" role marts play) and create `dbt/models/marts/nhl/` with an empty `_models.yml` ready for Task 12+.
 
 **Acceptance criteria:**
-- [x] `upload_file_to_s3` calls the mocked `s3.upload_fileobj` with the right bucket/key for a given file path
-- [x] `run_s3_upload_fileext` globs the right files by extension and builds `dest_object_name` from the last 3 path parts, per existing logic
-- [x] `run_s3_upload_fileext` on an empty glob result raises the existing `assert` (covered, not treated as a bug to fix)
-- [x] No real AWS call occurs; test passes with no AWS credentials configured in the environment
+- [ ] `dbt_project.yml` has a `marts: +materialized: table` (or equivalent) block
+- [ ] Directory structure exists and `dbt compile` doesn't error on the empty scaffold
 
 **Verification:**
-- [x] `uv run pytest tests/utility/test_aws.py -v` — all green, run once with `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` unset to confirm no real-network dependency
+- [ ] `dbt compile` succeeds with no models yet in the new directory
 
-**Dependencies:** Task 1
+**Dependencies:** None (can happen any time before Task 12)
 
 **Files likely touched:**
-- `ingestion/tests/utility/test_aws.py`
+- `dbt/dbt_project.yml`
+- `dbt/models/marts/nhl/_models.yml`
 
-**Estimated scope:** Small: 1 file
+**Estimated scope:** XS: 1-2 files
 
 ---
 
-## Task 10: Restore CLAUDE.md Tests section + final full-suite verification
+## Task 12: `fct_nhl__shot_attempts.sql`
 
-**Description:** Run the complete suite, confirm all spec Success Criteria are met, and restore an accurate `## Tests` section to `CLAUDE.md` (removed earlier this session for being stale — this time it should describe what's actually there).
+**Description:** Grain: one row per shot-attempt event. Core Corsi/Fenwick fact table per spec's column list (game_id, event_id, player_id, team_id, opponent_team_id, period, game_seconds, strength_state, shot_type, shot_distance, shot_angle, coordinates, all the boolean flags, zone_code).
 
 **Acceptance criteria:**
-- [x] `cd ingestion && uv run pytest` — full suite green
-- [x] `uv run pytest -m unit` and `uv run pytest -m "not slow"` run cleanly
-- [x] `CLAUDE.md` has a `### Tests (from ingestion/)` section with real, working commands
+- [ ] One row per shot attempt, matches `int_nhl__shot_events` row count exactly (pure select/rename, no filtering)
+- [ ] All spec-listed columns present
 
 **Verification:**
-- [x] Full pytest run with no `.env` file present and no network access (e.g. temporarily rename `.env` or run with network disabled) — suite still passes
-- [x] Manually diff `CLAUDE.md`'s new Tests section against actual working commands
+- [ ] `dbt build --select fct_nhl__shot_attempts` green, including schema tests
+- [ ] CF/FF totals for one game cross-checked against a public source
 
-**Dependencies:** Tasks 1-9
+**Dependencies:** Task 9, Task 11
 
 **Files likely touched:**
-- `CLAUDE.md`
+- `dbt/models/marts/nhl/fct_nhl__shot_attempts.sql`
+- `dbt/models/marts/nhl/_models.yml`
 
-**Estimated scope:** Small: 1 file
+**Estimated scope:** Small: 1-2 files (mostly a clean select over Task 9's work)
+
+---
+
+## Task 13: `fct_nhl__player_game_events.sql`
+
+**Description:** Grain: one row per event per player involvement, all event types (not just shots). Joins `int_nhl__events_enriched` with boxscore data (Task 6) for TOI context.
+
+**Acceptance criteria:**
+- [ ] Every event type from the spec's list appears (not just shot-related ones)
+- [ ] TOI context correctly joined per player-game
+
+**Verification:**
+- [ ] `dbt build --select fct_nhl__player_game_events` green
+- [ ] Spot-check one player's event count for one game against the box score summary stats (goals/assists/hits should match)
+
+**Dependencies:** Task 8, Task 6, Task 11
+
+**Files likely touched:**
+- `dbt/models/marts/nhl/fct_nhl__player_game_events.sql`
+- `dbt/models/marts/nhl/_models.yml`
+
+**Estimated scope:** Medium: 1-2 files, event-to-player attribution logic varies by event type
+
+---
+
+## Checkpoint: MVP Complete (Phase 4)
+
+- [ ] Full `dbt build` succeeds, no regressions to existing MoneyPuck models
+- [ ] `fct_nhl__shot_attempts` validated against a public source for at least one game
+- [ ] Human review before starting Phase 5
+
+---
+
+## Task 14 (Stretch): `mart_nhl__player_on_ice_impact.sql`
+
+**Description:** Grain: one row per player per season (or player-season-strength_state). CF/CA/FF/FA/SF/SA/GF/GA and their percentages, plus per-60 rates. Per spec's documented limitation: initial version attributes team events to all players who appeared in the game (boxscore-level), not true on-ice — that requires shift data (a separate future pipeline, see issue #5's shift-charts design doc).
+
+**Acceptance criteria:**
+- [ ] Metrics computed match the spec's formulas
+- [ ] Model description/column docs explicitly note the boxscore-level attribution limitation (so nobody mistakes this for true on-ice impact later)
+
+**Verification:**
+- [ ] `dbt build --select mart_nhl__player_on_ice_impact` green
+- [ ] Spot-check CF% for one well-known player-game against a public source, understanding it won't match exactly due to the attribution limitation
+
+**Dependencies:** Task 12, Task 6
+
+**Files likely touched:**
+- `dbt/models/marts/nhl/mart_nhl__player_on_ice_impact.sql`
+- `dbt/models/marts/nhl/_models.yml`
+
+**Estimated scope:** Medium-Large: aggregation logic across shots + boxscore + rosters
+
+---
+
+## Task 15 (Stretch): `mart_nhl__team_shot_quality.sql`
+
+**Description:** Grain: one row per team per season (or per game). Shot counts/quality by zone (inner slot, outer slot, point, perimeter) using dbt vars for the zone thresholds, per the spec's approximated boundaries.
+
+**Acceptance criteria:**
+- [ ] Zone classification thresholds are configurable via `dbt_project.yml` vars, not hardcoded in the SQL
+- [ ] Every shot attempt is assigned to exactly one zone (no nulls, no double-counting)
+
+**Verification:**
+- [ ] `dbt build --select mart_nhl__team_shot_quality` green
+- [ ] Manual review: high-danger chance % for one team roughly in a plausible range (not 0% or 100%)
+
+**Dependencies:** Task 12
+
+**Files likely touched:**
+- `dbt/models/marts/nhl/mart_nhl__team_shot_quality.sql`
+- `dbt/models/marts/nhl/_models.yml`
+- `dbt/dbt_project.yml` (zone threshold vars)
+
+**Estimated scope:** Medium: 1-2 files plus config
+
+---
+
+## Checkpoint: Complete (Phase 5)
+
+- [ ] Both stretch marts build and pass schema tests
+- [ ] Full `dbt build` green
+- [ ] Every item in the spec's dbt Testing Strategy section (schema tests + custom bounds/relationship tests) is implemented somewhere in the pipeline
