@@ -21,13 +21,14 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 ### Phase 1: Ingestion
 
 - [x] Task 1: `ingestion/scripts/get_nhl_play_by_play.py` — fetch play-by-play + rosters for a hardcoded game list
-- [ ] Task 2: `ingestion/scripts/get_nhl_boxscores.py` — fetch boxscores for the same game list
+- [x] Task 2: `ingestion/scripts/get_nhl_boxscores.py` — fetch boxscores for the same game list
 - [ ] Task 3: `ingestion/scripts/write_nhl_api_to_s3.py` — shared uploader for all `data/nhl_api/**` output
 
 ### Checkpoint: Ingestion
-- [x] `get_nhl_play_by_play.py` runs end-to-end against the live API for the hardcoded game list and produces Parquet files with the expected partitioning (`data/nhl_api/{play_by_play,game_rosters}/game_id={id}/*.parquet`) — `get_nhl_boxscores.py` (Task 2) still pending
+- [x] `get_nhl_play_by_play.py` and `get_nhl_boxscores.py` run end-to-end against the live API for the hardcoded game list and produce Parquet files with the expected partitioning (`data/nhl_api/{play_by_play,boxscores,game_rosters}/game_id={id}/*.parquet`)
 - [ ] `write_nhl_api_to_s3.py` uploads to the correct S3 keys (verify key structure, not just that *a* key was written)
 - [x] Spot-check one game's play-by-play row count against the NHL.com boxscore for that game — game 2024020003 (STL @ SEA): 52 shot-on-goal + 5 goal events = 57, matches API's reported `awayTeam.sog` (25) + `homeTeam.sog` (32) = 57
+- [x] Spot-check `get_nhl_boxscores.py` output for the same game — summing `sog` by `team_id` gives 25/32, matching the play-by-play cross-check above; 40 player rows (20 forwards, 12 defense, 4 goalies split evenly across the two teams)
 
 ### Phase 2: dbt Staging
 
