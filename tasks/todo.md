@@ -77,16 +77,20 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 4: Add `s3__bbrewington_nhl_data__nhl_api` source
+## Task 4: Add `s3__bbrewington_nhl_data__nhl_api` source ✅
 
 **Description:** Add a new source block to `dbt/models/staging/_sources.yml` for the NHL API S3 data, following the Hive-partitioned-glob pattern already proposed in the shift-charts design doc: `external_location: "s3://bbrewington-nhl-data/nhl_api/{name}.parquet"` with table entries for `play_by_play/game_id=*/events`, `boxscores/game_id=*/boxscore`, `game_rosters/game_id=*/rosters`.
 
+> Note: actual table names follow the ingestion scripts' real filenames (`play_by_play/game_id=*/play_by_play`, `boxscores/game_id=*/boxscores`, `game_rosters/game_id=*/game_rosters`), not the spec's placeholder names.
+
 **Acceptance criteria:**
-- [ ] `dbt show --select source('s3__bbrewington_nhl_data__nhl_api', 'play_by_play/game_id=*/events')` (or equivalent) returns rows from all uploaded games, not just one
-- [ ] If the `game_id=*` glob doesn't resolve correctly in dbt-duckdb, fall back to a flat glob and document why in a comment
+- [x] `dbt show --select source('s3__bbrewington_nhl_data__nhl_api', 'play_by_play/game_id=*/events')` (or equivalent) returns rows from all uploaded games, not just one
+- [x] If the `game_id=*` glob doesn't resolve correctly in dbt-duckdb, fall back to a flat glob and document why in a comment
+  - Glob itself resolved fine, but plain `read_parquet` failed with a schema-mismatch error across game files (play-by-play `details_*` columns are type-specific, so different games' files have different columns). Fixed by using `external_location: "read_parquet('s3://.../{name}.parquet', union_by_name=True)"` — dbt-duckdb passes `external_location` through unquoted whenever it contains `(`, so a function call with kwargs works directly.
 
 **Verification:**
-- [ ] `dbt run-operation` or `dbt show` against each new source table succeeds and returns the expected row count (sum across all games uploaded in Phase 1)
+- [x] `dbt run-operation` or `dbt show` against each new source table succeeds and returns the expected row count (sum across all games uploaded in Phase 1)
+  - `play_by_play`: 694 rows / 2 games. `boxscores`: 80 rows / 2 games. `game_rosters`: 80 rows / 2 games. All match the 2 games currently uploaded to S3 (Task 3).
 
 **Dependencies:** Task 3 (data must be in S3 first)
 

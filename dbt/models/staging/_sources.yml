@@ -15,3 +15,14 @@ sources:
       - name: season_level/Teams_*_regular
       - name: season_level/Teams_*_playoffs
       - name: shots/shots_*
+
+  - name: s3__bbrewington_nhl_data__nhl_api
+    meta:
+      # union_by_name=True: play-by-play event rows have type-specific `details_*`
+      # columns, so different game files have different schemas (e.g. a game with
+      # no discreteClip events won't have that column).
+      external_location: "read_parquet('s3://bbrewington-nhl-data/nhl_api/{name}.parquet', union_by_name=True)"
+    tables:
+      - name: play_by_play/game_id=*/play_by_play
+      - name: boxscores/game_id=*/boxscores
+      - name: game_rosters/game_id=*/game_rosters
