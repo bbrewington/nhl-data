@@ -83,8 +83,38 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 | NHL API is undocumented and unversioned — response shape could differ from the captured example (`game_play_by_play.json`) | Low-Med | Staging models should fail loudly (dbt tests) rather than silently coercing on shape mismatches |
 | Small hardcoded game list may not exercise all `situationCode` / event-type edge cases (e.g. shootouts, 3-on-3 OT) | Med | Deliberately pick games spanning regulation, OT, and if possible a shootout when choosing the initial game list in Task 1 |
 
+## Resolved Decisions
+
+- **Hardcoded game list (Task 1 input):** STL (St. Louis Blues), 2024-2025 regular season, chosen because `team_schedule_stl.json` is already a captured example fixture in `ingestion/src/nhl_api/example_responses/`, consistent with existing `client.teams.get_schedule("STL")` usage in `get_nhl_api_data.py`. 21 games spanning Oct 8 - Nov 21, 2024 — 16 regulation, 4 OT, 1 shootout (for `situationCode`/game-state edge case coverage):
+
+  ```
+  2024020003  2024-10-08  STL @ SEA   REG
+  2024020019  2024-10-10  STL @ SJS   OT
+  2024020023  2024-10-11  STL @ VGK   REG
+  2024020052  2024-10-15  MIN @ STL   REG
+  2024020068  2024-10-17  NYI @ STL   OT
+  2024020084  2024-10-19  CAR @ STL   REG
+  2024020099  2024-10-22  WPG @ STL   REG
+  2024020110  2024-10-24  STL @ TOR   REG
+  2024020126  2024-10-26  STL @ MTL   REG
+  2024020150  2024-10-29  STL @ OTT   REG
+  2024020162  2024-10-31  STL @ PHI   REG
+  2024020181  2024-11-02  TOR @ STL   REG
+  2024020199  2024-11-05  TBL @ STL   REG
+  2024020215  2024-11-07  UTA @ STL   REG
+  2024020229  2024-11-09  WSH @ STL   REG
+  2024020248  2024-11-12  BOS @ STL   REG
+  2024020257  2024-11-14  STL @ BUF   OT
+  2024020272  2024-11-16  STL @ BOS   OT
+  2024020284  2024-11-17  STL @ CAR   REG
+  2024020296  2024-11-19  MIN @ STL   REG
+  2024020312  2024-11-21  SJS @ STL   SO
+  ```
+
+  Derived from `data.games[]` in `team_schedule_stl.json`, filtered to `gameType == 2` (regular season) and `gameState == "OFF"` (completed), classified REG/OT/SO via `gameOutcome.lastPeriodType`. Task 1 should hardcode this list directly (e.g. as a module-level constant) rather than re-deriving it from the schedule endpoint at runtime — the schedule fetch would add an extra API dependency for no benefit at this fixed-list stage.
+
+- **Phase 5 timing:** Deferred. Stop after the Phase 4/MVP checkpoint; do not start Phase 5 until there's a concrete analysis use case pulling on `mart_nhl__player_on_ice_impact` / `mart_nhl__team_shot_quality`, mirroring the still-unstarted shift-charts work (issue #5).
+
 ## Open Questions
 
-- **Which games for the initial hardcoded list?** Plan assumes ~10-20 games from one team's early season, but this needs a concrete list before Task 1 starts. Needs human input (or reuse the same team/games already used for the shift-charts spec, if that's ever implemented, for consistency).
 - **Full-season backfill and incremental loading** are explicitly out of scope for this plan (matches the spec's own acknowledgment that this is a large lift). Should be scoped as a separate follow-up plan once the MVP marts are validated.
-- **Phase 5 marts** — confirm whether `mart_nhl__player_on_ice_impact` and `mart_nhl__team_shot_quality` should be built immediately after Phase 4, or deferred until there's a concrete analysis use case pulling on them (similar to how issue #5's shift/line analysis is currently unstarted despite having a design doc).
