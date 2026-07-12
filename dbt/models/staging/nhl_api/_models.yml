@@ -43,3 +43,47 @@ models:
         description: Number of away team skaters on the ice, parsed from situation_code
       - name: away_goalie_on_ice
         description: Whether the away team's goalie is on the ice, parsed from situation_code
+
+  - name: stg_nhl_api__boxscores
+    description: Player-game boxscore stats from the NHL API, one row per player per game
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - player_id
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: player_id
+        description: NHL player identifier
+        tests: [not_null]
+      - name: position_group
+        description: Player position group (forwards, defense, goalies)
+        tests:
+          - accepted_values:
+              values: [forwards, defense, goalies]
+      - name: toi
+        description: Time on ice as source string (mm:ss)
+      - name: toi_seconds
+        description: Time on ice in seconds, parsed from toi
+
+  - name: stg_nhl_api__game_rosters
+    description: Game roster entries from the NHL API, one row per player per game
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - player_id
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: player_id
+        description: NHL player identifier
+        tests: [not_null]
+      - name: team_id
+        description: NHL team identifier
+        tests: [not_null]
+      - name: position_code
+        description: Player position code (e.g. C, L, R, D, G)

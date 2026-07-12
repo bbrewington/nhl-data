@@ -126,16 +126,17 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 6: `stg_nhl_api__boxscores.sql`
+## Task 6: `stg_nhl_api__boxscores.sql` ✅
 
 **Description:** Staging model over the boxscores source. Rename and cast, parse `toi` (`"18:42"`) into `toi_seconds` (integer), dedupe on `(game_id, player_id)`.
 
 **Acceptance criteria:**
-- [ ] `unique` + `not_null` on `(game_id, player_id)`
-- [ ] `toi_seconds` matches manual conversion for a handful of spot-checked rows
+- [x] `unique` + `not_null` on `(game_id, player_id)`
+- [x] `toi_seconds` matches manual conversion for a handful of spot-checked rows
+  - Verified via `dbt show`: `15:40` → 940s, `09:40` → 580s, `22:35` → 1355s, etc.
 
 **Verification:**
-- [ ] `dbt build --select stg_nhl_api__boxscores` green
+- [x] `dbt build --select stg_nhl_api__boxscores` green
 
 **Dependencies:** Task 4
 
@@ -147,16 +148,17 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 7: `stg_nhl_api__game_rosters.sql`
+## Task 7: `stg_nhl_api__game_rosters.sql` ✅
 
 **Description:** Staging model over the game-rosters source. One row per player per game with `team_id`, `position`, `sweater_number`.
 
 **Acceptance criteria:**
-- [ ] `unique` + `not_null` on `(game_id, player_id)`
-- [ ] Row count per game matches the boxscore player count from Task 6 (cross-check, not just "runs without error")
+- [x] `unique` + `not_null` on `(game_id, player_id)`
+- [x] Row count per game matches the boxscore player count from Task 6 (cross-check, not just "runs without error")
+  - Both games: 40 roster players / 40 boxscore players.
 
 **Verification:**
-- [ ] `dbt build --select stg_nhl_api__game_rosters` green
+- [x] `dbt build --select stg_nhl_api__game_rosters` green
 
 **Dependencies:** Task 4
 
@@ -168,11 +170,11 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Checkpoint: Staging (Phase 2)
+## Checkpoint: Staging (Phase 2) ✅
 
-- [ ] `dbt build --select staging.nhl_api` succeeds against real S3 data
-- [ ] All three staging models pass their schema tests
-- [ ] Row counts cross-checked between rosters and boxscores for at least one game
+- [x] `dbt build --select staging.nhl_api` succeeds against real S3 data (3 models, 12 tests, all PASS)
+- [x] All three staging models pass their schema tests
+- [x] Row counts cross-checked between rosters and boxscores for at least one game (both games: 40/40)
 
 ---
 
