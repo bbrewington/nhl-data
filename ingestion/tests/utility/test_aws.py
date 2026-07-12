@@ -47,6 +47,24 @@ def test_run_s3_upload_fileext_globs_and_builds_dest_path(tmp_path, mock_s3, moc
     assert call_kwargs["dest_object_name"] == "moneypuck/2023/skaters.parquet"
 
 
+def test_run_s3_upload_fileext_respects_num_key_parts(tmp_path, mock_s3, mocker):
+    nested = tmp_path / "raw" / "nhl_api" / "play_by_play" / "game_id=2024020003"
+    nested.mkdir(parents=True)
+    parquet_file = nested / "play_by_play.parquet"
+    parquet_file.write_bytes(b"data")
+
+    upload = mocker.patch.object(aws, "upload_file_to_s3")
+
+    aws.run_s3_upload_fileext(data_dir=tmp_path, file_ext="parquet", num_key_parts=4)
+
+    upload.assert_called_once()
+    call_kwargs = upload.call_args.kwargs
+    assert (
+        call_kwargs["dest_object_name"]
+        == "nhl_api/play_by_play/game_id=2024020003/play_by_play.parquet"
+    )
+
+
 def test_run_s3_upload_fileext_raises_when_no_matching_files(tmp_path):
     with pytest.raises(AssertionError, match="No files of type parquet found"):
         aws.run_s3_upload_fileext(data_dir=tmp_path, file_ext="parquet")

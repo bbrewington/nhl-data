@@ -23,11 +23,11 @@ def upload_file_to_s3(file_path: Path, bucket_name, dest_object_name, verbose=Fa
         s3.upload_fileobj(f, bucket_name, dest_object_name)
 
 
-def run_s3_upload_fileext(data_dir, file_ext):
+def run_s3_upload_fileext(data_dir, file_ext, num_key_parts=3):
     files = [x for x in data_dir.glob(f"**/*.{file_ext}")]
     assert len(files) > 0, f"No files of type {file_ext} found in {data_dir}"
     for file in files:
-        dest_object_name = "/".join(file.parts[-3:])
+        dest_object_name = "/".join(file.parts[-num_key_parts:])
         upload_file_to_s3(
             file_path=file, bucket_name=S3_BUCKET, dest_object_name=dest_object_name, verbose=True
         )
