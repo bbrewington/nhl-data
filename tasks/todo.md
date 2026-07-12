@@ -101,18 +101,20 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 5: `stg_nhl_api__play_by_play_events.sql`
+## Task 5: `stg_nhl_api__play_by_play_events.sql` ✅
 
 **Description:** Staging model over the play-by-play source. Rename to snake_case, cast `game_id` to integer and coordinates to float, dedupe on `(game_id, event_id)`, normalize `type_desc_key` (hyphens to underscores), and parse `situation_code` into `home_goalie_on_ice`/`home_skaters`/`away_skaters`/`away_goalie_on_ice`. Add `loaded_at`.
 
 **Acceptance criteria:**
-- [ ] `unique` + `not_null` schema tests pass on `(game_id, event_id)`
-- [ ] `accepted_values` test passes on `type_desc_key` against the known event-type list from the spec
-- [ ] `situation_code` parsing produces correct skater counts for at least one manually verified 5v5, one PP, and one empty-net event
+- [x] `unique` + `not_null` schema tests pass on `(game_id, event_id)`
+  - Implemented as `dbt_utils.unique_combination_of_columns` (matches existing `stg_moneypuck__*` convention) plus separate `not_null` on each column.
+- [x] `accepted_values` test passes on `type_desc_key` against the known event-type list from the spec
+- [x] `situation_code` parsing produces correct skater counts for at least one manually verified 5v5, one PP, and one empty-net event
+  - Verified via `dbt show`: situation_code `1551` → 5v5, `1451` → home short-handed (away PP), `1560` → away goalie pulled (empty net).
 
 **Verification:**
-- [ ] `dbt build --select stg_nhl_api__play_by_play_events` green
-- [ ] Manual spot-check of 3-5 rows against the raw JSON for one game
+- [x] `dbt build --select stg_nhl_api__play_by_play_events` green (1 model + 4 tests, all PASS)
+- [x] Manual spot-check of 3-5 rows against the raw JSON for one game
 
 **Dependencies:** Task 4
 
