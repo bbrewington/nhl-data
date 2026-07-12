@@ -26,3 +26,4 @@ sources:
       - name: play_by_play/game_id=*/play_by_play
       - name: boxscores/game_id=*/boxscores
       - name: game_rosters/game_id=*/game_rosters
+      - name: games/game_id=*/games

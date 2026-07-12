@@ -63,6 +63,19 @@ def fetch_game(client: NHLClient, game_id: int) -> None:
         rosters, DATA_DIR / "game_rosters" / f"game_id={game_id}" / "game_rosters.parquet"
     )
 
+    games = pd.DataFrame(
+        [
+            {
+                "game_id": game_id,
+                "home_team_id": data["homeTeam"]["id"],
+                "home_team_abbr": data["homeTeam"]["abbrev"],
+                "away_team_id": data["awayTeam"]["id"],
+                "away_team_abbr": data["awayTeam"]["abbrev"],
+            }
+        ]
+    )
+    write_parquet(games, DATA_DIR / "games" / f"game_id={game_id}" / "games.parquet")
+
 
 if __name__ == "__main__":
     with NHLClient() as client:

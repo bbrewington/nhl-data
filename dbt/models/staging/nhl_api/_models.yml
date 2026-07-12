@@ -35,6 +35,7 @@ models:
                 - game_end
                 - delayed_penalty
                 - failed_shot_attempt
+                - shootout_complete
       - name: home_goalie_on_ice
         description: Whether the home team's goalie is on the ice, parsed from situation_code
       - name: home_skaters
@@ -87,3 +88,25 @@ models:
         tests: [not_null]
       - name: position_code
         description: Player position code (e.g. C, L, R, D, G)
+
+  - name: stg_nhl_api__games
+    description: One row per game with home/away team identity, from the NHL API play-by-play response's top-level homeTeam/awayTeam objects
+    tests:
+      - unique:
+          column_name: game_id
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: home_team_id
+        description: NHL numeric team identifier for the home team
+        tests: [not_null]
+      - name: home_team_abbr
+        description: 3-letter team abbreviation for the home team
+        tests: [not_null]
+      - name: away_team_id
+        description: NHL numeric team identifier for the away team
+        tests: [not_null]
+      - name: away_team_abbr
+        description: 3-letter team abbreviation for the away team
+        tests: [not_null]

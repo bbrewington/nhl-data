@@ -178,12 +178,37 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 8: `int_nhl__events_enriched.sql`
+## Task 8: `stg_nhl_api__games.sql` ✅
 
-**Description:** Join `stg_nhl_api__play_by_play_events` to team/player dimensions (`stg__team_abbrs`, `int__players` — same join pattern as `int__player_shifts` would use per the shift-charts doc). Add `is_home_team_event`, derive `strength_state` from the parsed situation-code fields (5v5, 5v4, 4v5, 4v4, 3v3, 5v3, 3v5, empty_net, other), normalize coordinates so offensive zone is always positive X, add `game_seconds` (continuous clock across periods).
+**Description:** New staging model needed to unblock Task 9. Checked against the real captured API response (`ingestion/src/nhl_api/example_responses/game_play_by_play.json`), the top-level play-by-play response has `data.homeTeam.{id, abbrev}` / `data.awayTeam.{id, abbrev}` — but `get_nhl_play_by_play.py::fetch_game()` currently only extracts `data["plays"]` and `data["rosterSpots"]`, discarding this. No staged table anywhere in the project currently records which numeric `team_id` is home vs. away for a game, and there's no existing crosswalk from the NHL API's numeric `team_id` to `team_abbr` (`stg__team_abbrs`/`int__players` are keyed off MoneyPuck's `team_abbr_raw` string instead). Extend `get_nhl_play_by_play.py` to also write a one-row-per-game `games.parquet` (`game_id`, `home_team_id`, `home_team_abbr`, `away_team_id`, `away_team_abbr`) to `data/nhl_api/games/game_id={game_id}/games.parquet`, re-run ingestion + upload for the existing 21-game list, add a `games/game_id=*/games` entry to the `s3__bbrewington_nhl_data__nhl_api` source, and stage it. This also means Task 9 doesn't need to invent a crosswalk to `stg__team_abbrs` — the API gives the abbreviation directly.
 
 **Acceptance criteria:**
-- [ ] `strength_state` correctly classifies all 9 spec-defined states for known example rows
+- [x] `unique` + `not_null` on `game_id`; `not_null` on `home_team_id`, `home_team_abbr`, `away_team_id`, `away_team_abbr`
+- [x] All 21 hardcoded games present after re-running ingestion + upload
+
+**Verification:**
+- [x] `aws s3 ls s3://bbrewington-nhl-data/nhl_api/games/ --recursive` shows 21 keys
+- [x] `dbt build --select stg_nhl_api__games` green, `dbt show --select stg_nhl_api__games --limit 25` returns 21 rows
+  - Bonus fix: expanding to all 21 games (previously only 2 were staged) surfaced a new `type_desc_key` value, `shootout_complete`, from the one shootout game (2024020312) — added to Task 5's `accepted_values` test list in `_models.yml`. Also had to add `S3_BUCKET_NAME` to `ingestion/.env` (was missing) and run ingestion/upload scripts with cwd=`ingestion/scripts` — `utility/aws.py`'s `load_dotenv("../.env")` only resolves correctly from that cwd, a pre-existing quirk, not something introduced here.
+
+**Dependencies:** None (extends already-completed Task 1/3, doesn't touch Tasks 5-7's models)
+
+**Files likely touched:**
+- `ingestion/scripts/get_nhl_play_by_play.py`
+- `dbt/models/staging/_sources.yml`
+- `dbt/models/staging/nhl_api/stg_nhl_api__games.sql`
+- `dbt/models/staging/nhl_api/_models.yml`
+
+**Estimated scope:** Small: re-run of an existing script + 1 new small staging model
+
+---
+
+## Task 9: `int_nhl__events_enriched.sql`
+
+**Description:** Join `stg_nhl_api__play_by_play_events` to `stg_nhl_api__games` (Task 8) for home/away team id + abbreviation. Add `is_home_team_event` and `event_team_abbr`, derive `strength_state` from the parsed situation-code fields (5v5, 5v4, 4v5, 4v4, 3v3, 5v3, 3v5, empty_net, other), normalize coordinates so offensive zone is always positive X using `home_team_defending_side`, add `game_seconds` (continuous clock across periods).
+
+**Acceptance criteria:**
+- [ ] `strength_state` correctly classifies all 9 spec-defined states for known example rows (reuse Task 5's verified `situation_code` examples: `1551`→5v5, `1451`→4v5, `1560`→empty_net)
 - [ ] Coordinate normalization verified empirically: shot-on-goal events for a team cluster toward positive X in the offensive zone across periods (not flipping direction each period)
 - [ ] `game_seconds` is monotonically non-decreasing within a game (excluding intermission gaps, which aren't tracked — document this)
 
@@ -191,7 +216,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select int_nhl__events_enriched` green
 - [ ] Manual cross-check: total PP time for one game roughly matches the box score's PP time listed on NHL.com
 
-**Dependencies:** Task 5
+**Dependencies:** Task 5, Task 8
 
 **Files likely touched:**
 - `dbt/models/intermediate/nhl/int_nhl__events_enriched.sql`
@@ -201,7 +226,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 9: `int_nhl__shot_events.sql`
+## Task 10: `int_nhl__shot_events.sql`
 
 **Description:** Filter `int_nhl__events_enriched` to shot-attempt events (`shot_on_goal`, `goal`, `missed_shot`, `blocked_shot`). Add `is_corsi_event`/`is_fenwick_event`/`is_shot_on_goal`/`is_goal` flags, `shot_distance`/`shot_angle` from normalized coordinates, `is_rebound` (within 3s of a prior shot attempt by either team) and `is_rush_shot` (within 4s of an event in another zone) flags.
 
@@ -214,7 +239,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select int_nhl__shot_events` green
 - [ ] Total shot-attempt count for one game roughly matches a public source (Natural Stat Trick / Hockey Reference)
 
-**Dependencies:** Task 8
+**Dependencies:** Task 9
 
 **Files likely touched:**
 - `dbt/models/intermediate/nhl/int_nhl__shot_events.sql`
@@ -224,7 +249,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 10: `int_nhl__game_strength_states.sql`
+## Task 11: `int_nhl__game_strength_states.sql`
 
 **Description:** From `int_nhl__events_enriched`, build a timeline of contiguous strength-state periods per game: `game_id`, `strength_state`, `period`, `start_game_seconds`, `end_game_seconds`, `duration_seconds`. This is the basis for rate stats (CF/60 etc.) in Phase 5.
 
@@ -236,7 +261,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select int_nhl__game_strength_states` green
 - [ ] Manual duration-sum check against total game seconds for 1-2 sample games
 
-**Dependencies:** Task 8
+**Dependencies:** Task 9
 
 **Files likely touched:**
 - `dbt/models/intermediate/nhl/int_nhl__game_strength_states.sql`
@@ -254,9 +279,9 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 11: Marts scaffold
+## Task 12: Marts scaffold
 
-**Description:** Add a `marts` block to `dbt_project.yml` (materialization — likely `table`, matching the "answer table" role marts play) and create `dbt/models/marts/nhl/` with an empty `_models.yml` ready for Task 12+.
+**Description:** Add a `marts` block to `dbt_project.yml` (materialization — likely `table`, matching the "answer table" role marts play) and create `dbt/models/marts/nhl/` with an empty `_models.yml` ready for Task 13+.
 
 **Acceptance criteria:**
 - [ ] `dbt_project.yml` has a `marts: +materialized: table` (or equivalent) block
@@ -265,7 +290,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 **Verification:**
 - [ ] `dbt compile` succeeds with no models yet in the new directory
 
-**Dependencies:** None (can happen any time before Task 12)
+**Dependencies:** None (can happen any time before Task 13)
 
 **Files likely touched:**
 - `dbt/dbt_project.yml`
@@ -275,7 +300,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 12: `fct_nhl__shot_attempts.sql`
+## Task 13: `fct_nhl__shot_attempts.sql`
 
 **Description:** Grain: one row per shot-attempt event. Core Corsi/Fenwick fact table per spec's column list (game_id, event_id, player_id, team_id, opponent_team_id, period, game_seconds, strength_state, shot_type, shot_distance, shot_angle, coordinates, all the boolean flags, zone_code).
 
@@ -287,17 +312,17 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select fct_nhl__shot_attempts` green, including schema tests
 - [ ] CF/FF totals for one game cross-checked against a public source
 
-**Dependencies:** Task 9, Task 11
+**Dependencies:** Task 10, Task 12
 
 **Files likely touched:**
 - `dbt/models/marts/nhl/fct_nhl__shot_attempts.sql`
 - `dbt/models/marts/nhl/_models.yml`
 
-**Estimated scope:** Small: 1-2 files (mostly a clean select over Task 9's work)
+**Estimated scope:** Small: 1-2 files (mostly a clean select over Task 10's work)
 
 ---
 
-## Task 13: `fct_nhl__player_game_events.sql`
+## Task 14: `fct_nhl__player_game_events.sql`
 
 **Description:** Grain: one row per event per player involvement, all event types (not just shots). Joins `int_nhl__events_enriched` with boxscore data (Task 6) for TOI context.
 
@@ -309,7 +334,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select fct_nhl__player_game_events` green
 - [ ] Spot-check one player's event count for one game against the box score summary stats (goals/assists/hits should match)
 
-**Dependencies:** Task 8, Task 6, Task 11
+**Dependencies:** Task 9, Task 6, Task 12
 
 **Files likely touched:**
 - `dbt/models/marts/nhl/fct_nhl__player_game_events.sql`
@@ -327,7 +352,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 14 (Stretch): `mart_nhl__player_on_ice_impact.sql`
+## Task 15 (Stretch): `mart_nhl__player_on_ice_impact.sql`
 
 **Description:** Grain: one row per player per season (or player-season-strength_state). CF/CA/FF/FA/SF/SA/GF/GA and their percentages, plus per-60 rates. Per spec's documented limitation: initial version attributes team events to all players who appeared in the game (boxscore-level), not true on-ice — that requires shift data (a separate future pipeline, see issue #5's shift-charts design doc).
 
@@ -339,7 +364,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select mart_nhl__player_on_ice_impact` green
 - [ ] Spot-check CF% for one well-known player-game against a public source, understanding it won't match exactly due to the attribution limitation
 
-**Dependencies:** Task 12, Task 6
+**Dependencies:** Task 13, Task 6
 
 **Files likely touched:**
 - `dbt/models/marts/nhl/mart_nhl__player_on_ice_impact.sql`
@@ -349,7 +374,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 15 (Stretch): `mart_nhl__team_shot_quality.sql`
+## Task 16 (Stretch): `mart_nhl__team_shot_quality.sql`
 
 **Description:** Grain: one row per team per season (or per game). Shot counts/quality by zone (inner slot, outer slot, point, perimeter) using dbt vars for the zone thresholds, per the spec's approximated boundaries.
 
@@ -361,7 +386,7 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 - [ ] `dbt build --select mart_nhl__team_shot_quality` green
 - [ ] Manual review: high-danger chance % for one team roughly in a plausible range (not 0% or 100%)
 
-**Dependencies:** Task 12
+**Dependencies:** Task 13
 
 **Files likely touched:**
 - `dbt/models/marts/nhl/mart_nhl__team_shot_quality.sql`

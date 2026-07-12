@@ -15,6 +15,7 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 - **Mart layer is new.** `dbt_project.yml` currently only configures `staging` (table) and `intermediate` (view) materializations — there is no `marts` config or `models/marts/` directory yet. Phase 4 adds both.
 - **Marts split into MVP vs. stretch.** `fct_nhl__shot_attempts` and `fct_nhl__player_game_events` are the core deliverables (Phase 4). `mart_nhl__player_on_ice_impact` and `mart_nhl__team_shot_quality` are more open-ended aggregations with configurable thresholds (Phase 5) — scoped separately so Phase 4 can ship and be reviewed on its own.
 - **xG model and shift-based on-ice attribution are out of scope**, per the spec's own "Out of Scope" section — not revisited here.
+- **New `stg_nhl_api__games` staging model, added when starting Phase 3.** `int_nhl__events_enriched` needs `is_home_team_event`, but no staged table records which numeric NHL API `team_id` is home vs. away, and there's no crosswalk from that numeric id to `team_abbr` (`stg__team_abbrs`/`int__players` are keyed off MoneyPuck's `team_abbr_raw` instead). Checked against the real captured API response, the play-by-play payload's top-level `homeTeam`/`awayTeam` objects carry both `id` and `abbrev` directly — `get_nhl_play_by_play.py` just wasn't capturing them. New Task 8 extends that script, re-runs ingestion/upload for the existing 21-game list, and adds a small staging model; this also means `int_nhl__events_enriched` doesn't need a `stg__team_abbrs` crosswalk at all. All task numbers from Phase 3 onward shifted by +1 to make room (old Task 8 → 9, ... old Task 15 → 16).
 
 ## Task List
 
@@ -44,9 +45,10 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 
 ### Phase 3: dbt Intermediate
 
-- [ ] Task 8: `dbt/models/intermediate/nhl/int_nhl__events_enriched.sql`
-- [ ] Task 9: `dbt/models/intermediate/nhl/int_nhl__shot_events.sql`
-- [ ] Task 10: `dbt/models/intermediate/nhl/int_nhl__game_strength_states.sql`
+- [x] Task 8: `dbt/models/staging/nhl_api/stg_nhl_api__games.sql` (+ small `get_nhl_play_by_play.py` extension) — home/away team identity, see Architecture Decisions
+- [ ] Task 9: `dbt/models/intermediate/nhl/int_nhl__events_enriched.sql`
+- [ ] Task 10: `dbt/models/intermediate/nhl/int_nhl__shot_events.sql`
+- [ ] Task 11: `dbt/models/intermediate/nhl/int_nhl__game_strength_states.sql`
 
 ### Checkpoint: Intermediate
 - [ ] `dbt build --select intermediate.nhl` succeeds
@@ -55,9 +57,9 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 
 ### Phase 4: dbt Marts (MVP)
 
-- [ ] Task 11: Add `marts` materialization config to `dbt_project.yml`, create `dbt/models/marts/nhl/` scaffold
-- [ ] Task 12: `dbt/models/marts/nhl/fct_nhl__shot_attempts.sql`
-- [ ] Task 13: `dbt/models/marts/nhl/fct_nhl__player_game_events.sql`
+- [ ] Task 12: Add `marts` materialization config to `dbt_project.yml`, create `dbt/models/marts/nhl/` scaffold
+- [ ] Task 13: `dbt/models/marts/nhl/fct_nhl__shot_attempts.sql`
+- [ ] Task 14: `dbt/models/marts/nhl/fct_nhl__player_game_events.sql`
 
 ### Checkpoint: MVP Complete
 - [ ] `dbt build` (full project) succeeds with no regressions to existing MoneyPuck models
@@ -66,8 +68,8 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 
 ### Phase 5: dbt Marts (Stretch — separate review checkpoint)
 
-- [ ] Task 14: `dbt/models/marts/nhl/mart_nhl__player_on_ice_impact.sql` (game-level boxscore-based attribution, per spec's documented limitation)
-- [ ] Task 15: `dbt/models/marts/nhl/mart_nhl__team_shot_quality.sql` with zone-classification thresholds as dbt vars
+- [ ] Task 15: `dbt/models/marts/nhl/mart_nhl__player_on_ice_impact.sql` (game-level boxscore-based attribution, per spec's documented limitation)
+- [ ] Task 16: `dbt/models/marts/nhl/mart_nhl__team_shot_quality.sql` with zone-classification thresholds as dbt vars
 
 ### Checkpoint: Complete
 - [ ] All Phase 5 marts build and pass schema tests
@@ -80,7 +82,7 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 |------|--------|------------|
 | Spec assumes dlt/Pydantic ingestion; adapting to plain-script pattern means losing schema validation on ingest | Med | Rely on dbt schema tests (accepted_values, not_null, bounds checks) as the validation layer instead — same approach already used for MoneyPuck data |
 | `game_id=*` Hive-partitioned glob may not work cleanly in dbt-duckdb (unconfirmed — same open risk flagged in the shift-charts doc) | Med | Task 4 validates this first, before staging models are built on top; fallback is a flat `shift_charts/*` style glob |
-| Coordinate normalization (which end each team shoots at, per period) is empirically determined, not documented by the API | High | Task 8 validates against known shot-on-goal patterns before downstream models depend on it; get this right early since everything in Phase 3+ depends on it |
+| Coordinate normalization (which end each team shoots at, per period) is empirically determined, not documented by the API | High | Task 9 validates against known shot-on-goal patterns before downstream models depend on it; get this right early since everything in Phase 3+ depends on it |
 | NHL API is undocumented and unversioned — response shape could differ from the captured example (`game_play_by_play.json`) | Low-Med | Staging models should fail loudly (dbt tests) rather than silently coercing on shape mismatches |
 | Small hardcoded game list may not exercise all `situationCode` / event-type edge cases (e.g. shootouts, 3-on-3 OT) | Med | Deliberately pick games spanning regulation, OT, and if possible a shootout when choosing the initial game list in Task 1 |
 
