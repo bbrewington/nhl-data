@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: int_nhl__events_enriched
+    description: >
+      Play-by-play events joined to home/away team identity, with strength_state derived
+      from situation_code, coordinates normalized so the offensive zone is always positive
+      x/y, and a continuous game_seconds clock across periods. Intermission time between
+      periods is not tracked, so game_seconds only reflects on-clock time.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - event_id
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: event_id
+        description: Event identifier, unique within a game
+        tests: [not_null]
+      - name: home_team_id
+        description: NHL numeric team identifier for the home team
+      - name: away_team_id
+        description: NHL numeric team identifier for the away team
+      - name: is_home_team_event
+        description: Whether event_owner_team_id belongs to the home team. Null for event types with no owning team (e.g. period_start, stoppage).
+      - name: event_team_abbr
+        description: 3-letter abbreviation of the team that owns the event. Null for event types with no owning team.
+      - name: strength_state
+        description: Game strength state derived from home_skaters/away_skaters/goalie_on_ice. Pulled-goalie situations are classified empty_net regardless of skater counts.
+        tests:
+          - accepted_values:
+              values:
+                - 5v5
+                - 5v4
+                - 4v5
+                - 4v4
+                - 3v3
+                - 5v3
+                - 3v5
+                - empty_net
+                - other
+      - name: x_coord_norm
+        description: x_coord normalized so the event owner's offensive zone is always positive x, adjusting for teams switching ends each period
+      - name: y_coord_norm
+        description: y_coord normalized alongside x_coord_norm (same flip applied) to preserve shot geometry
+      - name: game_seconds
+        description: >
+          Continuous elapsed on-clock seconds from the start of the game, computed from each
+          period's actual length (regulation/playoff-OT periods are 1200s, regular-season OT
+          is 300s, shootout is 0s) plus time_in_period. Does not account for intermission time.
