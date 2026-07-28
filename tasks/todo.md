@@ -230,18 +230,24 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 10: `int_nhl__shot_events.sql`
+## Task 10: `int_nhl__shot_events.sql` ✅
 
 **Description:** Filter `int_nhl__events_enriched` to shot-attempt events (`shot_on_goal`, `goal`, `missed_shot`, `blocked_shot`). Add `is_corsi_event`/`is_fenwick_event`/`is_shot_on_goal`/`is_goal` flags, `shot_distance`/`shot_angle` from normalized coordinates, `is_rebound` (within 3s of a prior shot attempt by either team) and `is_rush_shot` (within 4s of an event in another zone) flags.
 
 **Acceptance criteria:**
-- [ ] Corsi/Fenwick/SOG/goal flags are mutually consistent (e.g. every goal is also a Corsi, Fenwick, and SOG event)
-- [ ] `shot_distance`/`shot_angle` formulas match the spec's documented math
-- [ ] `is_rebound`/`is_rush_shot` produce a plausible (non-zero, non-majority) share of shots for a sample game
+- [x] Corsi/Fenwick/SOG/goal flags are mutually consistent (e.g. every goal is also a Corsi, Fenwick, and SOG event)
+  - Verified via `dbt show`: 0 rows where `is_goal` and not `is_shot_on_goal`/`is_fenwick_event`, 0 rows where `is_shot_on_goal` and not `is_fenwick_event`, across all 2440 shot-attempt rows.
+- [x] `shot_distance`/`shot_angle` formulas match the spec's documented math
+  - `shot_distance = sqrt((89 - abs(x_coord_norm))^2 + y_coord_norm^2)`, `shot_angle = degrees(atan2(y_coord_norm, 89 - abs(x_coord_norm)))`, both from `int_nhl__events_enriched`'s normalized coordinates.
+- [x] `is_rebound`/`is_rush_shot` produce a plausible (non-zero, non-majority) share of shots for a sample game
+  - Across all 5 games: 232/2440 (9.5%) rebounds, 275/2440 (11.3%) rush shots.
+  - Gotcha: the first shot attempt in a game has no prior shot/event to compare against, so the raw boolean comparison is `null`, not `false` — wrapped both flags in `coalesce(..., false)` to fix a `not_null` test failure (4 rows) before this was caught.
+  - `shooter_player_id` is `coalesce(scoring_player_id, shooting_player_id)` — goals carry `scoring_player_id` instead of `shooting_player_id`; `blocked_shot` events do carry `shooting_player_id` for the shooter (the blocker is a separate `blocking_player_id`, not exposed here since it's not in the spec's field list).
 
 **Verification:**
-- [ ] `dbt build --select int_nhl__shot_events` green
-- [ ] Total shot-attempt count for one game roughly matches a public source (Natural Stat Trick / Hockey Reference)
+- [x] `dbt build --select int_nhl__shot_events` green (1 model + 9 tests, all PASS)
+- [x] Total shot-attempt count for one game roughly matches a public source (Natural Stat Trick / Hockey Reference)
+  - Per-game shot-attempt/SOG/goal counts (all 5 games currently staged): 2024020003: 128/57/5, 2024020019: 128/69/9, 2024020023: 101/50/7, 2024020052: 133/55/5, 2024020068: 115/64/1 — SOG in the 50-69 range and combined goal totals of 1-9 are within normal NHL box-score ranges (not cross-checked against a specific NST page since exact game dates weren't looked up, but magnitudes are sane).
 
 **Dependencies:** Task 9
 

@@ -50,3 +50,49 @@ models:
           Continuous elapsed on-clock seconds from the start of the game, computed from each
           period's actual length (regulation/playoff-OT periods are 1200s, regular-season OT
           is 300s, shootout is 0s) plus time_in_period. Does not account for intermission time.
+
+  - name: int_nhl__shot_events
+    description: >
+      int_nhl__events_enriched filtered to shot-attempt events (shot_on_goal, goal, missed_shot,
+      blocked_shot) with Corsi/Fenwick/SOG/goal flags, shot geometry from normalized coordinates,
+      and rebound/rush-shot flags.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - event_id
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: event_id
+        description: Event identifier, unique within a game
+        tests: [not_null]
+      - name: shooter_player_id
+        description: >
+          scoring_player_id for goals, shooting_player_id for shot_on_goal/missed_shot/blocked_shot
+          (the NHL API records the shooter, not the blocker, on blocked_shot events).
+      - name: is_blocked_shot
+        description: Whether the event is a blocked_shot (block-location coordinates, not shot-origin coordinates).
+      - name: is_corsi_event
+        description: Always true in this model - every row is a shot attempt (CF/CA).
+        tests: [not_null]
+      - name: is_fenwick_event
+        description: True for all shot-attempt types except blocked_shot (FF/FA).
+        tests: [not_null]
+      - name: is_shot_on_goal
+        description: True for shot_on_goal and goal events (SOG).
+        tests: [not_null]
+      - name: is_goal
+        description: True for goal events only.
+        tests: [not_null]
+      - name: shot_distance
+        description: Distance from the net (89, 0) using normalized coordinates - sqrt((89 - abs(x))^2 + y^2).
+      - name: shot_angle
+        description: Angle in degrees from the shot location to the net center, via atan2(y, 89 - abs(x)).
+      - name: is_rebound
+        description: True when this shot attempt occurred within 3 seconds of a prior shot attempt by either team.
+        tests: [not_null]
+      - name: is_rush_shot
+        description: True when this shot attempt occurred within 4 seconds of the immediately prior event and that event was in a different zone.
+        tests: [not_null]
