@@ -284,11 +284,11 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Checkpoint: Intermediate (Phase 3)
+## Checkpoint: Intermediate (Phase 3) ✅
 
-- [ ] `dbt build --select intermediate.nhl` succeeds
-- [ ] Coordinate normalization and strength-state timeline both manually validated against known-good references
-- [ ] Ready to build marts on top
+- [x] `dbt build --select intermediate.nhl` succeeds (3 models, 19 tests, all PASS)
+- [x] Coordinate normalization and strength-state timeline both manually validated against known-good references (see Task 9 and Task 11 notes)
+- [x] Ready to build marts on top
 
 ---
 
