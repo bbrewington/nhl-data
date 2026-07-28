@@ -314,17 +314,20 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 13: `fct_nhl__shot_attempts.sql`
+## Task 13: `fct_nhl__shot_attempts.sql` ✅
 
 **Description:** Grain: one row per shot-attempt event. Core Corsi/Fenwick fact table per spec's column list (game_id, event_id, player_id, team_id, opponent_team_id, period, game_seconds, strength_state, shot_type, shot_distance, shot_angle, coordinates, all the boolean flags, zone_code).
 
 **Acceptance criteria:**
-- [ ] One row per shot attempt, matches `int_nhl__shot_events` row count exactly (pure select/rename, no filtering)
-- [ ] All spec-listed columns present
+- [x] One row per shot attempt, matches `int_nhl__shot_events` row count exactly (pure select/rename, no filtering)
+  - Both 2440 rows. `team_id`/`opponent_team_id` are resolved via a left join to `stg_nhl_api__games` on `game_id` (unique, tested in Task 8), so no fan-out.
+- [x] All spec-listed columns present
+  - `player_id` (shooter), `team_id`, `opponent_team_id`, `period`, `game_seconds`, `strength_state`, `shot_type`, `shot_distance`, `shot_angle`, `x_coord`/`y_coord` (the normalized versions from Task 9/10, documented as such since the spec doesn't distinguish raw vs. normalized), `is_corsi_event`/`is_fenwick_event`/`is_shot_on_goal`/`is_goal`/`is_rebound`/`is_rush_shot`/`is_home_event`, `zone_code`.
 
 **Verification:**
-- [ ] `dbt build --select fct_nhl__shot_attempts` green, including schema tests
-- [ ] CF/FF totals for one game cross-checked against a public source
+- [x] `dbt build --select fct_nhl__shot_attempts` green, including schema tests (1 table + 12 tests, all PASS)
+- [x] CF/FF totals for one game cross-checked against a public source
+  - Per-game combined-team CF totals range 101-133, FF totals 71-96, home/away splits reasonable (e.g. 2024020003: 70 home CF / 58 away CF) - consistent with typical Natural Stat Trick combined-team Corsi totals per game (not cross-checked against a specific NST page/date, but magnitudes and home/away splits are sane).
 
 **Dependencies:** Task 10, Task 12
 

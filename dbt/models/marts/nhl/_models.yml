@@ -1,3 +1,51 @@
 version: 2
 
-models: []
+models:
+  - name: fct_nhl__shot_attempts
+    description: >
+      Core Corsi/Fenwick fact table. Grain: one row per shot-attempt event
+      (shot_on_goal, goal, missed_shot, blocked_shot) - a pure select/rename over
+      int_nhl__shot_events with team_id/opponent_team_id resolved from stg_nhl_api__games.
+      x_coord/y_coord are the normalized coordinates (offensive zone always positive x),
+      not the raw API coordinates.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - event_id
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: event_id
+        description: Event identifier, unique within a game
+        tests: [not_null]
+      - name: player_id
+        description: Shooter's NHL player id (scoring_player_id for goals, shooting_player_id otherwise)
+      - name: team_id
+        description: NHL numeric team id of the shooting team
+        tests: [not_null]
+      - name: opponent_team_id
+        description: NHL numeric team id of the opposing team
+        tests: [not_null]
+      - name: is_corsi_event
+        description: Always true in this table - every row is a shot attempt (CF/CA)
+        tests: [not_null]
+      - name: is_fenwick_event
+        description: True for all shot-attempt types except blocked_shot (FF/FA)
+        tests: [not_null]
+      - name: is_shot_on_goal
+        description: True for shot_on_goal and goal events (SOG)
+        tests: [not_null]
+      - name: is_goal
+        description: True for goal events only
+        tests: [not_null]
+      - name: is_rebound
+        description: True when this shot attempt occurred within 3 seconds of a prior shot attempt by either team
+        tests: [not_null]
+      - name: is_rush_shot
+        description: True when this shot attempt occurred within 4 seconds of the immediately prior event and that event was in a different zone
+        tests: [not_null]
+      - name: is_home_event
+        description: Whether the shooting team is the home team
+        tests: [not_null]
