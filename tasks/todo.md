@@ -292,16 +292,17 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 12: Marts scaffold
+## Task 12: Marts scaffold ✅
 
 **Description:** Add a `marts` block to `dbt_project.yml` (materialization — likely `table`, matching the "answer table" role marts play) and create `dbt/models/marts/nhl/` with an empty `_models.yml` ready for Task 13+.
 
 **Acceptance criteria:**
-- [ ] `dbt_project.yml` has a `marts: +materialized: table` (or equivalent) block
-- [ ] Directory structure exists and `dbt compile` doesn't error on the empty scaffold
+- [x] `dbt_project.yml` has a `marts: +materialized: table` (or equivalent) block
+- [x] Directory structure exists and `dbt compile` doesn't error on the empty scaffold
+  - `dbt compile` emits a benign warning ("unused configuration path models.nhl_dbt.marts") since no models exist under it yet - not an error, exit code 0. Resolves once Task 13 adds the first marts model.
 
 **Verification:**
-- [ ] `dbt compile` succeeds with no models yet in the new directory
+- [x] `dbt compile` succeeds with no models yet in the new directory (exit 0)
 
 **Dependencies:** None (can happen any time before Task 13)
 
