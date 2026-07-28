@@ -1,11 +1,16 @@
+# Hard-coded paths in this repo
+/.agents/skills/
+/.claude/agents
+/.claude/skills
+/.claude/settings.local.json
+/data/
+/ingestion/data/
+/dbt/.user.yml
+
+# Other
 **/.venv/
 .ruff_cache/
-data/
 .env
 *.duckdb
 *.duckdb.wal
 __pycache__/
-dbt/.user.yml
-.claude/agents
-.claude/skills
-.claude/settings.local.json

@@ -12,39 +12,7 @@ These are **separate Python environments** managed with `uv`, each with their ow
 
 ## Commands
 
-### Ingestion environment (from repo root)
-```bash
-cd ingestion && uv venv && uv sync    # Setup
-uv run python scripts/nhl_api/get_nhl_api_data.py
-uv run python scripts/get_moneypuck_data.py
-uv run python scripts/write_moneypuck_to_s3.py
-```
-
-### Tests (from ingestion/)
-```bash
-uv run pytest                 # All tests — no network/AWS access required
-uv run pytest -m "not slow"   # Skip slow tests (no tests marked slow yet)
-uv run pytest tests/nhl_api/test_teams.py -v   # Single file
-```
-Tests mock at the `NHLSession.get_url` / `requests` / `boto3` boundary; `nhl_api` resource tests reuse the captured fixtures in `src/nhl_api/example_responses/*.json` via the `example_response` fixture in `tests/conftest.py`. `tests/` mirrors `src/` 1:1.
-
-### Lint/format (from ingestion/)
-```bash
-uv run ruff check .     # Lint
-uv run ruff format .    # Format
-```
-`src/nhl_proj_lineup/` is excluded (orphaned/WIP, not in the packaged wheel). `dbt/` has no Python to lint.
-
-### dbt environment (from dbt/)
-```bash
-cd dbt && uv venv && uv sync          # Setup (separate venv from ingestion/)
-# profiles.yml already exists (gitignored) — dev=local DuckDB, prod=MotherDuck
-cp .env.example .env                  # Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MOTHERDUCK_TOKEN
-uv run --env-file .env dbt deps       # Install dbt packages
-uv run --env-file .env dbt build      # Build all models + run tests
-uv run --env-file .env dbt run --select stg_moneypuck__players  # Run single model
-uv run --env-file .env dbt test       # Run dbt tests only
-```
+See `ingestion/CLAUDE.md` for ingestion setup/test/lint commands and `dbt/CLAUDE.md` for dbt setup/build commands.
 
 ## Architecture
 
@@ -85,12 +53,9 @@ See `docs/erd.md` for the Mermaid ERD covering Season, Game, Team, Player, Play,
 
 ## Conventions
 
-- **Python:** requires >= 3.13, uses `uv` for package management, `hatchling` build backend
-- **dbt project name:** `nhl_dbt`, profile: `nhl_dbt`
 - **dbt model naming:** `stg_<source>__<entity>` for staging, `int__<entity>` for intermediate, `seed__<entity>` for seeds
 - **NHLClient** supports context manager: `with NHLClient() as client:`
 - **HTTP retry:** NHLSession uses `backoff.on_exception` with exponential backoff on timeouts/connection errors
-- **Data formats:** Parquet for storage, CSV seeds for reference data
 - **Column naming:** snake_case (transformed from camelCase source data). MoneyPuck prefix conventions:
   - `x` prefix -> `exp_` (expected, e.g. `xGoals` -> `exp_goals`)
   - `I_F_` -> `ind_for_` (individual for)
