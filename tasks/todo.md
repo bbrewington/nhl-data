@@ -339,17 +339,20 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 14: `fct_nhl__player_game_events.sql`
+## Task 14: `fct_nhl__player_game_events.sql` ✅
 
 **Description:** Grain: one row per event per player involvement, all event types (not just shots). Joins `int_nhl__events_enriched` with boxscore data (Task 6) for TOI context.
 
 **Acceptance criteria:**
-- [ ] Every event type from the spec's list appears (not just shot-related ones)
-- [ ] TOI context correctly joined per player-game
+- [x] Every event type from the spec's list appears (not just shot-related ones)
+  - Built by unpivoting every player-id column on `int_nhl__events_enriched` (shooter, goalie_in_net, hitter/hittee, blocker, giveaway/takeaway, faceoff_winner/faceoff_loser, scorer/assist1/assist2, penalty_committed_by/drawn_by/served_by) into a `player_role`-tagged row via `union all`. Present event types: `blocked_shot`, `faceoff`, `giveaway`, `goal`, `hit`, `missed_shot`, `penalty`, `shot_on_goal`, `takeaway` - i.e. all types beyond shot-related ones. `period_start`/`period_end`/`game_end`/`stoppage`/`delayed_penalty`/`shootout_complete` legitimately don't appear since they carry no player-id fields in the source data (no player is "involved" in a stoppage), so there's nothing to unpivot for them.
+- [x] TOI context correctly joined per player-game
+  - Verified: no player in game 2024020003 has more than one distinct `toi_seconds` value across their event rows (query returned 0 rows) - `toi_seconds` is a static per-player-game value from `stg_nhl_api__boxscores`, correctly repeated across all of a player's event rows, not varying per-event.
 
 **Verification:**
-- [ ] `dbt build --select fct_nhl__player_game_events` green
-- [ ] Spot-check one player's event count for one game against the box score summary stats (goals/assists/hits should match)
+- [x] `dbt build --select fct_nhl__player_game_events` green (1 table + 6 tests, all PASS)
+- [x] Spot-check one player's event count for one game against the box score summary stats (goals/assists/hits should match)
+  - Checked all players with goals/hits/assists > 0 in game 2024020003: `scorer` count matches `goals`, `assist1`+`assist2` count matches `assists`, `hitter` count matches `hits`, exactly, for every player.
 
 **Dependencies:** Task 9, Task 6, Task 12
 

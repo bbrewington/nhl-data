@@ -49,3 +49,58 @@ models:
       - name: is_home_event
         description: Whether the shooting team is the home team
         tests: [not_null]
+
+  - name: fct_nhl__player_game_events
+    description: >
+      One row per event per player involvement, across all event types (not just shots).
+      Built by unpivoting every player-id column on int_nhl__events_enriched (shooter, goalie
+      facing the shot, hitter/hittee, blocker, giveaway/takeaway player, faceoff winner/loser,
+      goal scorer/assists, penalty committed/drawn/served by) into a player_role-tagged row,
+      then joining team_id from stg_nhl_api__game_rosters and toi_seconds (game-level, not
+      event-level) from stg_nhl_api__boxscores.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - event_id
+            - player_role
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: player_id
+        description: NHL numeric player id involved in the event
+        tests: [not_null]
+      - name: team_id
+        description: NHL numeric team id the player belongs to for this game, from stg_nhl_api__game_rosters
+      - name: event_id
+        description: Event identifier, unique within a game
+        tests: [not_null]
+      - name: event_type
+        description: Normalized type_desc_key of the underlying event
+        tests: [not_null]
+      - name: player_role
+        description: >
+          How this player was involved in the event - shooter, goalie_in_net, hitter, hittee,
+          blocker, giveaway, takeaway, faceoff_winner, faceoff_loser, scorer, assist1, assist2,
+          penalty_committed_by, penalty_drawn_by, or penalty_served_by.
+        tests:
+          - accepted_values:
+              values:
+                - shooter
+                - goalie_in_net
+                - hitter
+                - hittee
+                - blocker
+                - giveaway
+                - takeaway
+                - faceoff_winner
+                - faceoff_loser
+                - scorer
+                - assist1
+                - assist2
+                - penalty_committed_by
+                - penalty_drawn_by
+                - penalty_served_by
+      - name: toi_seconds
+        description: Player's total time-on-ice for the game (from stg_nhl_api__boxscores), not per-event.
