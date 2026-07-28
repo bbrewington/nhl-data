@@ -96,3 +96,30 @@ models:
       - name: is_rush_shot
         description: True when this shot attempt occurred within 4 seconds of the immediately prior event and that event was in a different zone.
         tests: [not_null]
+
+  - name: int_nhl__game_strength_states
+    description: >
+      Timeline of contiguous strength-state periods per game, derived from int_nhl__events_enriched.
+      A new segment starts whenever strength_state or period_number changes; segments are contiguous
+      (each segment's end_game_seconds equals the next segment's start_game_seconds) so that
+      sum(duration_seconds) per game equals the game's total on-clock length. Does not account for
+      intermission time (not tracked in game_seconds).
+    columns:
+      - name: game_id
+        description: NHL 10-digit game identifier
+        tests: [not_null]
+      - name: strength_state
+        description: Game strength state for this segment (see int_nhl__events_enriched).
+        tests: [not_null]
+      - name: period
+        description: Period number this segment falls within.
+        tests: [not_null]
+      - name: start_game_seconds
+        description: Continuous game_seconds at which this segment starts (inclusive).
+        tests: [not_null]
+      - name: end_game_seconds
+        description: Continuous game_seconds at which this segment ends (exclusive) - equals the next segment's start_game_seconds, or the game's total length for the final segment.
+        tests: [not_null]
+      - name: duration_seconds
+        description: end_game_seconds - start_game_seconds
+        tests: [not_null]

@@ -259,17 +259,20 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ---
 
-## Task 11: `int_nhl__game_strength_states.sql`
+## Task 11: `int_nhl__game_strength_states.sql` ✅
 
 **Description:** From `int_nhl__events_enriched`, build a timeline of contiguous strength-state periods per game: `game_id`, `strength_state`, `period`, `start_game_seconds`, `end_game_seconds`, `duration_seconds`. This is the basis for rate stats (CF/60 etc.) in Phase 5.
 
 **Acceptance criteria:**
-- [ ] For a sample game, `sum(duration_seconds)` across all rows equals total game length (regulation + OT, accounting for the game's actual periods)
-- [ ] No overlapping or gapped intervals for a given game
+- [x] For a sample game, `sum(duration_seconds)` across all rows equals total game length (regulation + OT, accounting for the game's actual periods)
+  - Verified for all 21 games: `sum(duration_seconds)` exactly equals `max(game_seconds)` from `int_nhl__events_enriched` (3600 for REG-only games, 3645/3724 for games that went to OT).
+- [x] No overlapping or gapped intervals for a given game
+  - By construction: each segment's `end_game_seconds` is `lead(start_game_seconds)` within the game (falling back to the game's total length for the final segment), so segments always share their boundary with the next segment's start - impossible to gap or overlap. One game (2024020126) has a legitimate zero-duration segment (`empty_net` at game_seconds=2038) from a `penalty` event and a `faceoff` landing on the same clock second - confirmed via the raw events, not a bug.
 
 **Verification:**
-- [ ] `dbt build --select int_nhl__game_strength_states` green
-- [ ] Manual duration-sum check against total game seconds for 1-2 sample games
+- [x] `dbt build --select int_nhl__game_strength_states` green (1 model + 6 tests, all PASS)
+- [x] Manual duration-sum check against total game seconds for 1-2 sample games
+  - Checked all 21 games via `dbt show`, all matched exactly.
 
 **Dependencies:** Task 9
 
