@@ -25,12 +25,13 @@ NHL API / MoneyPuck.com
   moneypuck/           ← CSV scraper, converts to Parquet
         │
         ▼
-  S3 (Parquet)         ← s3://bbrewington-nhl-data/moneypuck/
+  S3 (Parquet)         ← s3://bbrewington-nhl-data/{moneypuck,nhl_api}/
         │
         ▼
   dbt/ (dbt-duckdb)    ← SQL transformations against S3 sources
   staging/             ← stg_* models (materialized: table)
   intermediate/        ← int_* models (materialized: view)
+  marts/               ← fct_*/mart_* models (materialized: table)
   snapshots/           ← SCD Type 2 player tracking
         │
         ▼
@@ -39,6 +40,7 @@ NHL API / MoneyPuck.com
 
 ### Data sources defined in `dbt/models/staging/_sources.yml`
 - S3 external source `s3__bbrewington_nhl_data__moneypuck` with glob patterns for season-level, game-level, and shots data
+- S3 external source `s3__bbrewington_nhl_data__nhl_api` for play-by-play/boxscores/game_rosters/games, Hive-partitioned by `game_id=`. Uses `read_parquet(..., union_by_name=True)` as `external_location` since play-by-play event rows have type-specific `details_*` columns that vary file-to-file.
 
 ### Key dbt macro
 - `game_id_attrs(game_id_colname)` in `dbt/macros/game_id_attrs.sql` - parses NHL 10-digit game IDs into game_type, game_number, and playoff metadata
@@ -53,7 +55,7 @@ See `docs/erd.md` for the Mermaid ERD covering Season, Game, Team, Player, Play,
 
 ## Conventions
 
-- **dbt model naming:** `stg_<source>__<entity>` for staging, `int__<entity>` for intermediate, `seed__<entity>` for seeds
+- **dbt model naming:** `stg_<source>__<entity>` for staging, `int__<entity>` for intermediate, `seed__<entity>` for seeds. The NHL play-by-play pipeline (`docs/features/nhl_play_by_play.md`) instead namespaces intermediate/mart models by entity domain rather than source: `int_nhl__<entity>`, `fct_nhl__<entity>`, `mart_nhl__<entity>` (staging still follows the source-based `stg_nhl_api__<entity>` pattern)
 - **NHLClient** supports context manager: `with NHLClient() as client:`
 - **HTTP retry:** NHLSession uses `backoff.on_exception` with exponential backoff on timeouts/connection errors
 - **Column naming:** snake_case (transformed from camelCase source data). MoneyPuck prefix conventions:

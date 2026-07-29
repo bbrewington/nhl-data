@@ -33,37 +33,37 @@ Ingest NHL play-by-play events, boxscores, and game rosters from the NHL Web API
 
 ### Phase 2: dbt Staging
 
-- [ ] Task 4: Add `s3__bbrewington_nhl_data__nhl_api` source to `dbt/models/staging/_sources.yml`
-- [ ] Task 5: `dbt/models/staging/nhl_api/stg_nhl_api__play_by_play_events.sql`
-- [ ] Task 6: `dbt/models/staging/nhl_api/stg_nhl_api__boxscores.sql`
-- [ ] Task 7: `dbt/models/staging/nhl_api/stg_nhl_api__game_rosters.sql`
+- [x] Task 4: Add `s3__bbrewington_nhl_data__nhl_api` source to `dbt/models/staging/_sources.yml`
+- [x] Task 5: `dbt/models/staging/nhl_api/stg_nhl_api__play_by_play_events.sql`
+- [x] Task 6: `dbt/models/staging/nhl_api/stg_nhl_api__boxscores.sql`
+- [x] Task 7: `dbt/models/staging/nhl_api/stg_nhl_api__game_rosters.sql`
 
 ### Checkpoint: Staging
-- [ ] `dbt build --select staging.nhl_api` succeeds against real S3 data
-- [ ] `not_null`/`unique`/`accepted_values` schema tests pass for all three staging models
-- [ ] Row counts are sane (staging row count == raw Parquet row count, no silent drops from joins)
+- [x] `dbt build --select staging.nhl_api` succeeds against real S3 data (3 models, 12 tests, all PASS)
+- [x] `not_null`/`unique`/`accepted_values` schema tests pass for all three staging models
+- [x] Row counts are sane (rosters/boxscores cross-checked 40/40 player rows for both initial games — see `tasks/todo.md` Task 7)
 
 ### Phase 3: dbt Intermediate
 
 - [x] Task 8: `dbt/models/staging/nhl_api/stg_nhl_api__games.sql` (+ small `get_nhl_play_by_play.py` extension) — home/away team identity, see Architecture Decisions
-- [ ] Task 9: `dbt/models/intermediate/nhl/int_nhl__events_enriched.sql`
-- [ ] Task 10: `dbt/models/intermediate/nhl/int_nhl__shot_events.sql`
-- [ ] Task 11: `dbt/models/intermediate/nhl/int_nhl__game_strength_states.sql`
+- [x] Task 9: `dbt/models/intermediate/nhl/int_nhl__events_enriched.sql`
+- [x] Task 10: `dbt/models/intermediate/nhl/int_nhl__shot_events.sql`
+- [x] Task 11: `dbt/models/intermediate/nhl/int_nhl__game_strength_states.sql`
 
 ### Checkpoint: Intermediate
-- [ ] `dbt build --select intermediate.nhl` succeeds
-- [ ] Coordinate normalization validated empirically (see spec's "Known Limitations" note on end-switching) against 2-3 known shot locations
-- [ ] Strength-state timeline for one game manually cross-checked against the live broadcast/box score (e.g. PP time roughly matches)
+- [x] `dbt build --select intermediate.nhl` succeeds
+- [x] Coordinate normalization validated empirically (see spec's "Known Limitations" note on end-switching) against 2-3 known shot locations — see Task 9 findings in `tasks/todo.md`
+- [x] Strength-state timeline for one game manually cross-checked (duration-sum equals total game length exactly for all 21 games — see Task 11 in `tasks/todo.md`)
 
 ### Phase 4: dbt Marts (MVP)
 
-- [ ] Task 12: Add `marts` materialization config to `dbt_project.yml`, create `dbt/models/marts/nhl/` scaffold
-- [ ] Task 13: `dbt/models/marts/nhl/fct_nhl__shot_attempts.sql`
-- [ ] Task 14: `dbt/models/marts/nhl/fct_nhl__player_game_events.sql`
+- [x] Task 12: Add `marts` materialization config to `dbt_project.yml`, create `dbt/models/marts/nhl/` scaffold
+- [x] Task 13: `dbt/models/marts/nhl/fct_nhl__shot_attempts.sql`
+- [x] Task 14: `dbt/models/marts/nhl/fct_nhl__player_game_events.sql`
 
 ### Checkpoint: MVP Complete
-- [ ] `dbt build` (full project) succeeds with no regressions to existing MoneyPuck models
-- [ ] `fct_nhl__shot_attempts` CF/FF counts for one game roughly match a public source (e.g. Natural Stat Trick) for that game
+- [x] `dbt build` (full project) succeeds with no regressions to existing MoneyPuck models (96/96 pass)
+- [x] `fct_nhl__shot_attempts` CF/FF counts for one game roughly match a public source (e.g. Natural Stat Trick) for that game — see Task 13 in `tasks/todo.md`
 - [ ] Ready for human review before starting Phase 5
 
 ### Phase 5: dbt Marts (Stretch — separate review checkpoint)

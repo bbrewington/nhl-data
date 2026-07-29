@@ -10,6 +10,20 @@ uv run python scripts/get_moneypuck_data.py
 uv run python scripts/write_moneypuck_to_s3.py
 ```
 
+### NHL play-by-play pipeline (from `ingestion/scripts/`, not repo root or `ingestion/`)
+
+`utility/aws.py` resolves `.env` via a hardcoded `load_dotenv("../.env")`, which only
+resolves correctly with cwd = `ingestion/scripts/` — running these from another cwd
+silently uploads to `s3://None/...` or reads/writes the wrong `data/` directory (there
+are two: `ingestion/data/` and repo-root `data/`, depending on cwd when fetch ran).
+
+```bash
+cd ingestion/scripts
+uv run --project .. python get_nhl_play_by_play.py   # play-by-play events + game rosters + games, per hardcoded game_id list
+uv run --project .. python get_nhl_boxscores.py       # boxscores, same game_id list
+uv run --project .. python write_nhl_api_to_s3.py     # uploads data/nhl_api/** to S3
+```
+
 ### Tests (from ingestion/)
 ```bash
 uv run pytest                 # All tests — no network/AWS access required
