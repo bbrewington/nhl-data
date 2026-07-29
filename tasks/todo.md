@@ -366,8 +366,10 @@ Plan: [tasks/plan.md](plan.md) · Spec: [docs/features/nhl_play_by_play.md](../d
 
 ## Checkpoint: MVP Complete (Phase 4)
 
-- [ ] Full `dbt build` succeeds, no regressions to existing MoneyPuck models
-- [ ] `fct_nhl__shot_attempts` validated against a public source for at least one game
+- [x] Full `dbt build` succeeds, no regressions to existing MoneyPuck models
+  - Full project build (96/96: 1 seed, 1 snapshot, 15 table models, 5 view models, 74 data tests) green — verified during the 2026-07-29 docs audit (commit `43bf512`).
+- [x] `fct_nhl__shot_attempts` validated against a public source for at least one game
+  - See Task 13 above: per-game combined-team CF/FF totals in normal Natural Stat Trick range.
 - [ ] Human review before starting Phase 5
 
 ---
